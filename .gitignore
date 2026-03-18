@@ -1,0 +1,11 @@
+.venv/
+__pycache__/
+*.pyc
+
+outputs/
+scratch/
+
+vendor/isobyu/*.log
+vendor/isobyu/cifscratch*.dat
+
+tutorials-iwmc2024_isotutorials.zip

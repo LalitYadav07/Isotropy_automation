@@ -1,0 +1,101 @@
+# CIF file created by ISOCIF, version 3.1.1               
+# Magnetic Space Group: 15.90 C2/c.1'_c[C2/m]
+# Space-group preferences: monoclinic axes a(b)c, monoclinic cell choice 1
+# Lattice parameters: a= 5.44522, b= 3.14380, c= 6.28759, alpha= 90.00000, beta= 125.26439, gamma= 90.00000
+# Mn 4c (0,0,0;mx,0,mz), mx=-5.65832, mz= 0.00000
+# O 4b (0,1/2,3/4)
+# Note that this file uses an alternate (possibly nonstandard) setting chosen by the user:
+#     basis={(0,2,1),(0,-2,1),(2,0,1)}, origin=(0.00000,0.00000,-1.00000)
+
+data_isocif-output
+_audit_creation_method ISOCIF
+
+_cell_length_a     8.89200
+_cell_length_b     8.89200
+_cell_length_c     8.89201
+_cell_angle_alpha  90.00004
+_cell_angle_beta   90.00004
+_cell_angle_gamma  90.00009
+_cell_volume       703.07056
+
+_space_group_magn.number_BNS "15.90"
+_space_group_magn.name_UNI "C2/c.1'_c[C2/m]"
+_space_group_magn.name_BNS "C_c2/c"
+_space_group_magn.number_OG "12.8.73"
+_space_group_magn.name_OG "C_2c2/m'"
+_space_group_magn.point_group_number_Litvin "5.2.13"
+_space_group_magn.point_group_name_UNI "2/m.1'"
+
+loop_
+_space_group_magn_transforms.id
+_space_group_magn_transforms.Pp_abc
+_space_group_magn_transforms.source
+1 -1/4a-1/4b+1/2c,1/4a-1/4b,1/2a+1/2b;1/2,1/2,0 "BNS"
+2 1/4a+1/4b+1/2c,3/4a+1/4b,3/4a+3/4b;3/8,1/8,0 "OG"
+
+loop_
+_space_group_symop_magn_operation.id
+_space_group_symop_magn_operation.xyz
+1 x,y,z,+1 
+2 -y+1/4,-x+1/4,-z,+1 
+3 -x,-y,-z,+1 
+4 y+1/4,x+1/4,z,+1 
+
+loop_
+_space_group_symop_magn_centering.id
+_space_group_symop_magn_centering.xyz
+1 x,y,z,+1 
+2 x+1/4,y+1/4,z,-1 
+3 x,y+1/4,z+3/4,+1 
+4 x+1/4,y+1/2,z+3/4,-1 
+5 x,y+1/2,z+1/2,+1 
+6 x+1/4,y+3/4,z+1/2,-1 
+7 x,y+3/4,z+1/4,+1 
+8 x+1/4,y+1,z+1/4,-1 
+9 x+1/4,y,z+3/4,+1 
+10 x+1/2,y+1/4,z+3/4,-1 
+11 x+1/4,y+1/4,z+1/2,+1 
+12 x+1/2,y+1/2,z+1/2,-1 
+13 x+1/4,y+1/2,z+1/4,+1 
+14 x+1/2,y+3/4,z+1/4,-1 
+15 x+1/4,y+3/4,z,+1 
+16 x+1/2,y+1,z,-1 
+17 x+1/2,y,z+1/2,+1 
+18 x+3/4,y+1/4,z+1/2,-1 
+19 x+1/2,y+1/4,z+1/4,+1 
+20 x+3/4,y+1/2,z+1/4,-1 
+21 x+1/2,y+1/2,z,+1 
+22 x+3/4,y+3/4,z,-1 
+23 x+1/2,y+3/4,z+3/4,+1 
+24 x+3/4,y+1,z+3/4,-1 
+25 x+3/4,y,z+1/4,+1 
+26 x+1,y+1/4,z+1/4,-1 
+27 x+3/4,y+1/4,z,+1 
+28 x+1,y+1/2,z,-1 
+29 x+3/4,y+1/2,z+3/4,+1 
+30 x+1,y+3/4,z+3/4,-1 
+31 x+3/4,y+3/4,z+1/2,+1 
+32 x+1,y+1,z+1/2,-1 
+
+loop_
+_atom_site_label
+_atom_site_type_symbol
+_atom_site_symmetry_multiplicity
+_atom_site_Wyckoff_symbol
+_atom_site_fract_x
+_atom_site_fract_y
+_atom_site_fract_z
+_atom_site_occupancy
+_atom_site_fract_symmform
+Mn Mn  32 c  0.50000  0.50000  0.00000  1.00000 0,0,0 
+O  O   32 b  0.00000  0.75000  0.00000  1.00000 0,0,0 
+
+loop_
+_atom_site_moment.label
+_atom_site_moment.crystalaxis_x
+_atom_site_moment.crystalaxis_y
+_atom_site_moment.crystalaxis_z
+_atom_site_moment.symmform
+Mn  2.31000  2.31000 -4.62000 Mx,Mx,Mz 
+
+# end of cif

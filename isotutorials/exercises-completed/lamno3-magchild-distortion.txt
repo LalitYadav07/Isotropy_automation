@@ -1,0 +1,504 @@
+!begin distortionFile
+#version of isodistort
+!isodistortVersion
+6.12.1              
+#version of isotropy subgroups in data_isotropy and data_magnetic
+!isoSubgroupVersion
+2021
+#string containing parent space group
+!parentString
+221 Pm-3m      Oh-1
+#string containing lattice parameters of parent
+!lattParamString
+a= 3.94080, b= 3.94080, c= 3.94080, alpha= 90.00000, beta= 90.00000, gamma= 90.00000
+#for each wyckoff position: string
+!wyckoffString
+1b (1/2,1/2,1/2)
+1a (0,0,0)
+3d (1/2,0,0)
+#string containing order parameter and subgroup
+!orderParamString
+Subgroup: 62.448 Pn'ma', basis={(1,0,-1),(0,2,0),(1,0,1)}, origin=(1/2,0,1/2), s=4, i=48
+#string containing information about distorted structure
+!subgroupString
+Magnetic Space group: 62.448 Pn'ma', Lattice parameters: a= 5.74610, b= 7.66370, c= 5.53330, alpha= 90.00000, beta= 90.00000, gamma= 90.00000, Atomic positions: La 4c (x,1/4,z;0,my,0), x= 0.05130, z=-0.00950, Mn 4b (0,0,1/2;mx,my,mz), mx= 3.87000, my= 0.00000, mz= 0.00000, O1 4c (x,1/4,z;0,my,0), x= 0.48490, z= 0.07770, O2 8d (x,y,z;mx,my,mz), x= 0.30850, y= 0.04080, z=-0.27730
+#string containing lattice parameters of undistorted subgroup
+!subLattParamString
+a=5.57313, b=7.88160, c=5.57313, alpha=90.00000, beta=90.00000, gamma=90.00000
+#space group setting of parent
+!parentSetting
+323
+#space group setting: monoclinic axes
+!settingAxesM
+a(b)c
+#space group setting: monoclinic cell
+!settingCell
+1
+#space group setting: origin
+!settingOrigin
+2
+#space group setting: axes for R hexagonal
+!settingAxesH
+h
+#space group setting: axes for orthorhombic
+!settingAxesO
+abc
+#superspace group setting
+!settingSSG
+standard
+#lattice parameters
+!lattParam
+    3.940800    3.940800    3.940800   90.000000   90.000000   90.000000
+#number of wyckoff positions
+!wyckoffCount
+  3
+#for each wyckoff position: position number
+!wyckoffNumber
+  2  1  4
+#for each wyckoff position: type of atom
+!wyckoffAtomType
+  1  2  3
+#for each wyckoff position: wyckoff position symbol
+!wyckoffPos
+La
+Mn
+O
+#for each wyckoff position: symbol for type of atom
+!wyckoffAtom
+La
+Mn
+O
+#for each wyckoff position: position parameters
+!wyckoffParam
+    0.000000    0.000000    0.000000
+    0.000000    0.000000    0.000000
+    0.000000    0.000000    0.000000
+#for each wyckoff position: occupation
+!wyckoffOccupation
+    1.000000
+    1.000000
+    1.000000
+#include pivot atoms
+!includePivot
+ F
+#for each wyckoff position:  include displacive distortions
+!includeDisplacive
+ T T T
+#for each wyckoff position:  include ordering distortions
+!includeOrdering
+ F F F
+#for each wyckoff position:  include magnetic distortions
+!includeMagnetic
+ F T F
+#for each wyckoff position:  include rotational distortions
+!includeRotational
+ F F F
+#for each wyckoff position:  include ellipsoidal distortions
+!includeEllipsoidal
+ F F F
+#include strain distortions
+!includeStrain
+ T
+#number of primary IRs
+!irrepCount
+0
+#isotropy subgroup number
+!isoNumber
+    0
+#space group of isotropy subgroup
+!subgroup
+   546
+#lattice basis vector and origin of subgroup
+!basisOrigin
+   1   0  -1   0   2   0   1   0   1   1   0   1   2
+#name of file containing modes
+!modesFileName
+isodistort_95211.iso 
+#name of file containing information about atomic positions in subgroup
+!atomsFileName
+isodistort_46295.iso 
+#maximum number of displacive modes for a single wyckoff position
+!maxDisplaciveModes
+     5
+#for each displacive mode in each wyckoff position: mode coefficient
+!displaciveModesCoef
+   -0.105890    0.571800    0.000000    0.000000    0.000000    0.000000
+    0.000000    0.000000    0.000000    0.000000    1.255540    0.030740
+    0.168310   -0.347760    0.956350
+#maximum number of ordering modes for a single wyckoff position
+!maxOrderingModes
+     0
+#maximum number of magnetic modes for a single wyckoff position
+!maxMagneticModes
+     3
+#for each magnetic mode in each wyckoff position: mode coefficient
+!magneticModesCoef
+    0.000000    0.000000    0.000000    0.000000    0.000000   -7.507010
+    0.000000    0.000000    0.000000
+#maximum number of rotational modes for a single wyckoff position
+!maxRotationalModes
+     0
+#maximum number of ellipsoidal modes for a single wyckoff position
+!maxEllipsoidalModes
+     0
+#for each strain mode: mode coefficient
+!strainModesCoef
+   -0.002170   -0.032330   -0.027000    0.000000    0.000000    0.000000
+#atomic radius in applet
+!atomicRadius
+    0.400000
+#maximum bond length in applet
+!maxBondLength
+    2.500000
+#length of magnetic moment vectors in applet
+!angstromsPerMagneton
+    0.500000
+#applet width in pixels
+!appletWidth
+  1024
+#supercell viewing range in applet
+!supercellViewingRange
+    0.000000    1.000000    0.000000    1.000000    0.000000    1.000000
+#maximum displacement mode coefficient in applet
+!maxDisplaciveModeCoef
+    1.000000
+#maximum strain mode coefficient in applet
+!maxStrainModeCoef
+    0.100000
+#maximum magnetic mode coefficient in applet
+!maxMagneticModeCoef
+    1.000000
+#include strain modes in TOPAS.STR
+!includeStrainTopas
+ F
+#include TOPAS.STR files for subgroup tree
+!includeTreeTopas
+ F
+#include CIF files for subgroup tree
+!includeTreeCIF
+ F
+#number of decimal places in CIF file
+!CIFDecimalPlaces
+  5
+#nonstandard setting in CIF file
+!CIFNonstandardSetting
+ F
+#make CIF movie
+!makeCIFMovie
+ F
+!end distortionFile
+
+#modes file
+!begin modesFile
+#maximum number of atoms in applet for each wyckoff position
+!maxAtomsApplet
+      12
+#maximum number of displacive modes for each wyckoff position
+!maxDisplaciveModes
+   5
+#maximum number of magnetic modes for each wyckoff position
+!maxMagneticModes
+   3
+#maximum number of rotational modes for each wyckoff position
+!maxRotationalModes
+   0
+#maximum number of ellipsoidal modes for each wyckoff position
+!maxEllipsoidalModes
+   0
+#maximum number of ordering modes for each wyckoff position
+!maxOrderingModes
+   0
+#number of IRs
+!irrepCount
+  16
+#for each wyckoff position: number of atoms in unit cell
+!atomCount
+       4       4      12
+#for each wyckoff position: number of displacive modes
+!displaciveModesCount
+       2       0       5
+#for each wyckoff position: number of magnetic modes
+!magneticModesCount
+       0       3       0
+#for each wyckoff position: number of rotational modes
+!rotationalModesCount
+       0       0       0
+#for each wyckoff position: number of ellipsoidal modes
+!ellipsoidalModesCount
+       0       0       0
+#for each wyckoff position: number of ordering modes
+!orderingModesCount
+       0       0       0
+#number of strain modes
+!strainModesCount
+       3
+#for each wyckoff position: number of wyckoff positions in subgroup
+!wyckoffSubgroupCount
+       1       1       2
+#number of incommensurate modulations in subgroup setting
+!modCount
+0
+#size of subgroup unit cell
+!subgroupCellSize
+  4
+#for each IR: IR number
+!irrepNumber
+  9782  9784  9786  9783  9784  9785  9807  9808  9807  9808  9818  9818
+  9825  9826  9824  9827
+#for each IR: dimension of matrix
+!irrepDim
+  1  2  3  1  2  3  3  3  3  3  6  6  3  3  3  3
+#for each IR: magnetic or not
+!irrepMagnetic
+ F F F T T T F F T T F T F F T T
+#for each IR: k vector parameters
+!kvecParam
+       0       0       0       1       0       0       0       1       0       0
+       0       1       0       0       0       1       0       0       0       1
+       0       0       0       1       0       0       0       1       0       0
+       0       1       0       0       0       1       0       0       0       1
+       0       0       0       1       0       0       0       1       0       0
+       0       1       0       0       0       1       0       0       0       1
+       0       0       0       1
+#for each IR: isotropy subgroup
+!isoSubgroup
+    221    123     65   1597   1003   1005     74     74    660    660     63    564
+    127    127   1009   1009
+#for each IR:  lattice basis vector and origin for isotropy subgroup
+!isoBasisOrigin
+   0  -1   0  -1   0   0   0   0  -1   0   0   0   1
+   1   0   0   0   0   1   0  -1   0   0   0   0   1
+   0   0   1  -1   0   0   0  -1   0   0   0   0   1
+   0  -1   0  -1   0   0   0   0  -1   0   0   0   1
+   1   0   0   0   0   1   0  -1   0   0   0   0   1
+   1   0   0   0   0   1   0  -1   0   0   0   0   1
+   0  -1   1   1   1   0  -1   1   0   0  -1   1   2
+   0  -1   1   1   1   0  -1   1   0   0  -1   1   2
+  -1   1   0   0  -1   1   1   1   0   0   0   0   1
+  -1   1   0   0  -1   1   1   1   0   0   0   0   1
+   0   0   1   1   0   0   0   2   0   0   0   0   1
+   0   0   1  -1   0   0   0  -2   0   0   0   0   1
+   1   0  -1   1   0   1   0  -1   0   1   0  -1   2
+   1   0  -1   1   0   1   0  -1   0   0   0   0   1
+   1   0  -1   1   0   1   0  -1   0   0   0   0   1
+   1   0  -1   1   0   1   0  -1   0   1   0  -1   2
+#for each IR: size of unit cell of isotropy subgroup
+!isoSubgroupCellSize
+       1       1       1       1       1       1       2       2       2       2
+       2       2       2       2       2       2
+#for each IR: number of degrees of freedom in order parameter
+!orderParamFree
+  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1
+#for each IR: order parameter
+!orderParam
+   1.00000000   1.00000000  -1.73205081   0.00000000   0.00000000   1.00000000
+   1.00000000   1.00000000   0.57735027   0.00000000   1.00000000   0.00000000
+   1.00000000  -1.00000000   0.00000000   1.00000000   1.00000000   0.00000000
+   1.00000000   1.00000000   0.00000000   1.00000000  -1.00000000   0.00000000
+   1.00000000   1.00000000   0.00000000   0.00000000   0.00000000   0.00000000
+   1.00000000  -1.00000000   0.00000000   0.00000000   0.00000000   0.00000000
+   0.00000000   1.00000000   0.00000000   0.00000000   1.00000000   0.00000000
+   0.00000000   1.00000000   0.00000000   0.00000000   1.00000000   0.00000000
+#for each IR: index of isotropy subgroup
+!isoSubgroupIndex
+       1       3       6       2       6       6      12      12      12      12
+      12      12       6       6       6       6
+#for each IR: number of incommensurate modulations
+!irrepModCount
+       0       0       0       0       0       0       0       0       0       0
+       0       0       0       0       0       0
+!irrepIndepModCount
+       0       0       0       0       0       0       0       0       0       0
+       0       0       0       0       0       0
+#for each IR: incommensurate k vector parameters
+!kvecParamIrrat
+   0.000000000000   0.000000000000   0.000000000000
+   0.000000000000   0.000000000000   0.000000000000
+   0.000000000000   0.000000000000   0.000000000000
+   0.000000000000   0.000000000000   0.000000000000
+   0.000000000000   0.000000000000   0.000000000000
+   0.000000000000   0.000000000000   0.000000000000
+   0.000000000000   0.000000000000   0.000000000000
+   0.000000000000   0.000000000000   0.000000000000
+   0.000000000000   0.000000000000   0.000000000000
+   0.000000000000   0.000000000000   0.000000000000
+   0.000000000000   0.000000000000   0.000000000000
+   0.000000000000   0.000000000000   0.000000000000
+   0.000000000000   0.000000000000   0.000000000000
+   0.000000000000   0.000000000000   0.000000000000
+   0.000000000000   0.000000000000   0.000000000000
+   0.000000000000   0.000000000000   0.000000000000
+#for each IR: incommensurate modulations involved
+!irrepMod
+
+#IR for each displacive mode
+!displaciveModeIrrep
+     8    11     7     8    11    13    14
+#IR of wyckoff point group for each displacive mode
+!displaciveModePGIrrep
+  4526  4526  2470  2470  2470  2468  2470
+#IR for each magnetic mode
+!magneticModeIrrep
+     6     9    12
+#IR of wyckoff point group for each magnetic mode
+!magneticModePGIrrep
+  4521  4521  4521
+#IR for each strain mode
+!strainModeIrrep
+     1     2     3
+#scale for each displacive mode
+!displaciveModeScale
+   2.00000000   2.00000000   2.82842712   2.82842712   2.00000000   2.82842712
+   2.82842712
+#normalization for each displacive mode
+!displaciveModeNorm
+   0.08971615   0.08971615   0.06343890   0.06343890   0.08971615   0.04485807
+   0.04485807
+#scale for each magnetic mode
+!magneticModeScale
+   8.00000000   8.00000000   8.00000000
+#normalization for each magnetic mode
+!magneticModeNorm
+   0.06343890   0.08971615   0.08971615
+#normalization for each strain mode
+!strainModeNorm
+   0.57735027   0.81649658   1.41421356
+#lattice parameters of subgroup
+!subgroupLattParam
+   5.57313281   7.88160000   5.57313281  90.00000000  90.00000000  90.00000000
+#lattice basis vectors and origin of parent wrt subgroup
+!parentBasisOrigin
+   0.50000000   0.00000000   0.50000000   0.00000000   0.50000000   0.00000000
+  -0.50000000   0.00000000   0.50000000   0.00000000   0.00000000  -0.50000000
+#nearest neighbor distance
+!NearDistance
+   1.97040000
+#components of each strain mode
+!strainModes
+   1.00000000   1.00000000   1.00000000   0.00000000   0.00000000   0.00000000
+  -0.50000000   1.00000000  -0.50000000   0.00000000   0.00000000   0.00000000
+   0.00000000   0.00000000   0.00000000   0.00000000   1.00000000   0.00000000
+#subgroup wyckoff position of each atom in applet
+!subgroupWyckoff
+     1     1     1     1     1     1     1     1     1     1     1     1
+     1     1     1     1     2     2     2     2
+#position of each atom in applet
+!atomPos
+   0.000000000000   0.250000000000   0.000000000000
+   0.000000000000   0.750000000000   0.000000000000
+   0.500000000000   0.250000000000   0.500000000000
+   0.500000000000   0.750000000000   0.500000000000
+   0.000000000000   0.000000000000   0.500000000000
+   0.000000000000   0.500000000000   0.500000000000
+   0.500000000000   0.000000000000   0.000000000000
+   0.500000000000   0.500000000000   0.000000000000
+   0.250000000000   0.000000000000   0.750000000000
+   0.250000000000   0.500000000000   0.750000000000
+   0.750000000000   0.000000000000   0.250000000000
+   0.750000000000   0.500000000000   0.250000000000
+   0.750000000000   0.000000000000   0.750000000000
+   0.750000000000   0.500000000000   0.750000000000
+   0.250000000000   0.000000000000   0.250000000000
+   0.250000000000   0.500000000000   0.250000000000
+   0.000000000000   0.250000000000   0.500000000000
+   0.000000000000   0.750000000000   0.500000000000
+   0.500000000000   0.250000000000   0.000000000000
+   0.500000000000   0.750000000000   0.000000000000
+#for each displacive mode:  displacement of each atom
+!displaciveMode
+   0.000000000000   0.000000000000   0.089716146618
+   0.089716146618   0.000000000000   0.000000000000
+   0.000000000000   0.000000000000  -0.089716146618
+  -0.089716146618   0.000000000000   0.000000000000
+   0.000000000000   0.000000000000  -0.089716146618
+   0.089716146618   0.000000000000   0.000000000000
+   0.000000000000   0.000000000000   0.089716146618
+  -0.089716146618   0.000000000000   0.000000000000
+   0.000000000000   0.031719447828   0.000000000000
+   0.000000000000   0.031719447828   0.000000000000
+   0.000000000000   0.000000000000   0.000000000000
+  -0.044858073309   0.000000000000  -0.044858073309
+   0.044858073309   0.000000000000  -0.044858073309
+   0.000000000000  -0.031719447828   0.000000000000
+   0.000000000000  -0.031719447828   0.000000000000
+   0.000000000000   0.000000000000   0.000000000000
+  -0.044858073309   0.000000000000  -0.044858073309
+   0.044858073309   0.000000000000  -0.044858073309
+   0.000000000000  -0.031719447828   0.000000000000
+   0.000000000000  -0.031719447828   0.000000000000
+   0.000000000000   0.000000000000   0.000000000000
+   0.044858073309   0.000000000000   0.044858073309
+  -0.044858073309   0.000000000000   0.044858073309
+   0.000000000000   0.031719447828   0.000000000000
+   0.000000000000   0.031719447828   0.000000000000
+   0.000000000000   0.000000000000   0.000000000000
+   0.044858073309   0.000000000000   0.044858073309
+  -0.044858073309   0.000000000000   0.044858073309
+   0.000000000000   0.031719447828   0.000000000000
+   0.000000000000   0.031719447828   0.000000000000
+   0.000000000000   0.000000000000   0.000000000000
+  -0.044858073309   0.000000000000   0.044858073309
+   0.044858073309   0.000000000000   0.044858073309
+   0.000000000000  -0.031719447828   0.000000000000
+   0.000000000000  -0.031719447828   0.000000000000
+   0.000000000000   0.000000000000   0.000000000000
+  -0.044858073309   0.000000000000   0.044858073309
+   0.044858073309   0.000000000000   0.044858073309
+   0.000000000000  -0.031719447828   0.000000000000
+   0.000000000000  -0.031719447828   0.000000000000
+   0.000000000000   0.000000000000   0.000000000000
+   0.044858073309   0.000000000000  -0.044858073309
+  -0.044858073309   0.000000000000  -0.044858073309
+   0.000000000000   0.031719447828   0.000000000000
+   0.000000000000   0.031719447828   0.000000000000
+   0.000000000000   0.000000000000   0.000000000000
+   0.044858073309   0.000000000000  -0.044858073309
+  -0.044858073309   0.000000000000  -0.044858073309
+   0.000000000000   0.000000000000  -0.063438895656
+   0.000000000000   0.000000000000   0.063438895656
+  -0.089716146618   0.000000000000   0.000000000000
+   0.000000000000   0.000000000000   0.000000000000
+   0.000000000000   0.000000000000   0.000000000000
+   0.000000000000   0.000000000000   0.063438895656
+   0.000000000000   0.000000000000  -0.063438895656
+   0.089716146618   0.000000000000   0.000000000000
+   0.000000000000   0.000000000000   0.000000000000
+   0.000000000000   0.000000000000   0.000000000000
+   0.000000000000   0.000000000000   0.063438895656
+   0.000000000000   0.000000000000  -0.063438895656
+  -0.089716146618   0.000000000000   0.000000000000
+   0.000000000000   0.000000000000   0.000000000000
+   0.000000000000   0.000000000000   0.000000000000
+   0.000000000000   0.000000000000  -0.063438895656
+   0.000000000000   0.000000000000   0.063438895656
+   0.089716146618   0.000000000000   0.000000000000
+   0.000000000000   0.000000000000   0.000000000000
+   0.000000000000   0.000000000000   0.000000000000
+#for each magnetic mode:  magnetic moment of each atom
+!magneticMode
+   0.000000000000   0.063438895656   0.000000000000
+   0.000000000000   0.000000000000   0.089716146618
+  -0.089716146618   0.000000000000   0.000000000000
+   0.000000000000   0.063438895656   0.000000000000
+   0.000000000000   0.000000000000  -0.089716146618
+   0.089716146618   0.000000000000   0.000000000000
+   0.000000000000   0.063438895656   0.000000000000
+   0.000000000000   0.000000000000  -0.089716146618
+  -0.089716146618   0.000000000000   0.000000000000
+   0.000000000000   0.063438895656   0.000000000000
+   0.000000000000   0.000000000000   0.089716146618
+   0.089716146618   0.000000000000   0.000000000000
+!end modesFile
+
+#atoms file
+!begin atomsFile
+   5.74610   7.66370   5.53330  90.00000  90.00000  90.00000
+La                  La
+   0.05130   0.25000  -0.00950
+Mn                  Mn
+   0.00000   0.00000   0.50000
+O1                  O
+   0.48490   0.25000   0.07770
+O2                  O
+   0.30850   0.04080   0.72270
+!end atomsFile

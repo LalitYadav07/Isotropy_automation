@@ -1,0 +1,139 @@
+# CIF file created by ISOCIF, version 3.1.1               
+# Magnetic Superspace Group: 1.1.1.1.m1.1 P1.1(a,b,g)0
+# Space-group preferences: SSG standard setting
+# Lattice parameters: a= 5.22620, b= 5.22620, c= 8.16530, alpha= 90.00000, beta= 90.00000, gamma= 120.00000
+# Dy1_1_1 1a (x,y,z;mx,my,mz), x= 0.00000, y= 0.00000, z= 0.00000, mx= 0.00000, my= 0.00000, mz=-3.93200
+# Mn1_1_1 1a (x,y,z;mx,my,mz), x= 0.50000, y= 0.00000, z= 0.25040, mx= 0.00000, my= 0.00000, mz= 1.14900
+# Mn1_1_2 1a (x,y,z;mx,my,mz), x= 0.50000, y= 0.50000, z= 0.25040, mx= 0.00000, my= 0.00000, mz= 1.14900
+# Mn1_1_3 1a (x,y,z;mx,my,mz), x= 0.00000, y= 0.50000, z= 0.25040, mx= 0.00000, my= 0.00000, mz= 1.14900
+# Mn1_1_4 1a (x,y,z;mx,my,mz), x= 0.50000, y= 0.00000, z= 0.74960, mx= 0.00000, my= 0.00000, mz= 1.14900
+# Mn1_1_5 1a (x,y,z;mx,my,mz), x= 0.50000, y= 0.50000, z= 0.74960, mx= 0.00000, my= 0.00000, mz= 1.14900
+# Mn1_1_6 1a (x,y,z;mx,my,mz), x= 0.00000, y= 0.50000, z= 0.74960, mx= 0.00000, my= 0.00000, mz= 1.14900
+# Ge1_1_1 1a (x,y,z;mx,my,mz), x= 0.33333, y= 0.66667, z= 0.00000
+# Ge1_1_2 1a (x,y,z;mx,my,mz), x= 0.66667, y= 0.33333, z= 0.00000
+# Ge2_1_1 1a (x,y,z;mx,my,mz), x= 0.33333, y= 0.66667, z= 0.50000
+# Ge2_1_2 1a (x,y,z;mx,my,mz), x= 0.66667, y= 0.33333, z= 0.50000
+# Ge3_1_1 1a (x,y,z;mx,my,mz), x= 0.00000, y= 0.00000, z= 0.34530
+# Ge3_1_2 1a (x,y,z;mx,my,mz), x= 0.00000, y= 0.00000, z= 0.65470
+
+data_isocif-output
+_audit_creation_method ISOCIF
+
+_cell_length_a     5.22620
+_cell_length_b     5.22620
+_cell_length_c     8.16530
+_cell_angle_alpha  90.00000
+_cell_angle_beta   90.00000
+_cell_angle_gamma  120.00000
+_cell_volume       193.14116
+
+_space_group_magn.ssg_number "1.1.1.1.m1.1"
+_space_group_magn.ssg_name "P1.1(a,b,g)0"
+_space_group_magn.point_group_number_Litvin "1.1.1"
+_space_group_magn.point_group_name_UNI "1.1"
+
+
+loop_
+_space_group_magn_ssg_transforms.id
+_space_group_magn_ssg_transforms.Pp_superspace
+_space_group_magn_ssg_transforms.source
+1 a1,a2,a3,a4;0,0,0,0 "ISO(3+d)D"
+2 a1,a2,a3,a4;0,0,0,0 "ISOMAG-ISO(3+d)D"
+
+loop_
+_space_group_symop_magn_ssg_operation.id
+_space_group_symop_magn_ssg_operation.algebraic
+1 x1,x2,x3,x4,+1
+
+loop_
+_space_group_symop_magn_ssg_centering.id
+_space_group_symop_magn_ssg_centering.algebraic
+1 x1,x2,x3,x4,+1
+
+loop_
+_atom_site_label
+_atom_site_type_symbol
+_atom_site_symmetry_multiplicity
+_atom_site_Wyckoff_symbol
+_atom_site_fract_x
+_atom_site_fract_y
+_atom_site_fract_z
+_atom_site_occupancy
+_atom_site_fract_symmform
+Dy1_1_1 Dy   1 a  0.00000  0.00000  0.00000  1.00000 Dx,Dy,Dz 
+Mn1_1_1 Mn   1 a  0.50000  0.00000  0.25040  1.00000 Dx,Dy,Dz 
+Mn1_1_2 Mn   1 a  0.50000  0.50000  0.25040  1.00000 Dx,Dy,Dz 
+Mn1_1_3 Mn   1 a  0.00000  0.50000  0.25040  1.00000 Dx,Dy,Dz 
+Mn1_1_4 Mn   1 a  0.50000  0.00000  0.74960  1.00000 Dx,Dy,Dz 
+Mn1_1_5 Mn   1 a  0.50000  0.50000  0.74960  1.00000 Dx,Dy,Dz 
+Mn1_1_6 Mn   1 a  0.00000  0.50000  0.74960  1.00000 Dx,Dy,Dz 
+Ge1_1_1 Ge   1 a  0.33333  0.66667  0.00000  1.00000 Dx,Dy,Dz 
+Ge1_1_2 Ge   1 a  0.66667  0.33333  0.00000  1.00000 Dx,Dy,Dz 
+Ge2_1_1 Ge   1 a  0.33333  0.66667  0.50000  1.00000 Dx,Dy,Dz 
+Ge2_1_2 Ge   1 a  0.66667  0.33333  0.50000  1.00000 Dx,Dy,Dz 
+Ge3_1_1 Ge   1 a  0.00000  0.00000  0.34530  1.00000 Dx,Dy,Dz 
+Ge3_1_2 Ge   1 a  0.00000  0.00000  0.65470  1.00000 Dx,Dy,Dz 
+
+loop_
+_atom_site_moment.label
+_atom_site_moment.crystalaxis_x
+_atom_site_moment.crystalaxis_y
+_atom_site_moment.crystalaxis_z
+_atom_site_moment.symmform
+Dy1_1_1  0.00000  0.00000 -3.93200 Mx,My,Mz 
+Mn1_1_1  0.00000  0.00000  1.14900 Mx,My,Mz 
+Mn1_1_2  0.00000  0.00000  1.14900 Mx,My,Mz 
+Mn1_1_3  0.00000  0.00000  1.14900 Mx,My,Mz 
+Mn1_1_4  0.00000  0.00000  1.14900 Mx,My,Mz 
+Mn1_1_5  0.00000  0.00000  1.14900 Mx,My,Mz 
+Mn1_1_6  0.00000  0.00000  1.14900 Mx,My,Mz 
+
+_cell_modulation_dimension 1
+
+loop_
+_cell_wave_vector_seq_id
+_cell_wave_vector_x
+_cell_wave_vector_y
+_cell_wave_vector_z
+  1    0.00000    0.00000  -0.16500
+
+loop_
+_atom_site_Fourier_wave_vector_seq_id
+_atom_site_Fourier_wave_vector_x
+_atom_site_Fourier_wave_vector_y
+_atom_site_Fourier_wave_vector_z
+_atom_site_Fourier_wave_vector_q1_coeff
+1     0.00000    0.00000  -0.16500  1
+
+loop_
+_atom_site_moment_Fourier.atom_site_label
+_atom_site_moment_Fourier.wave_vector_seq_id
+_atom_site_moment_Fourier.axis
+_atom_site_moment_Fourier_param.cos
+_atom_site_moment_Fourier_param.sin
+_atom_site_moment_Fourier_param.cos_symmform
+_atom_site_moment_Fourier_param.sin_symmform
+Dy1_1_1 1 x     -7.15400    0.00000  Mxc1 Mxs1
+Dy1_1_1 1 y     -3.57700  -6.19555  Myc1 Mys1
+Dy1_1_1 1 z       0.00000    0.00000  Mzc1 Mzs1
+Mn1_1_1 1 x       1.67548  -1.19664  Mxc1 Mxs1
+Mn1_1_1 1 y       1.87374    0.85305  Myc1 Mys1
+Mn1_1_1 1 z       0.00000    0.00000  Mzc1 Mzs1
+Mn1_1_2 1 x       1.67595  -1.19654  Mxc1 Mxs1
+Mn1_1_2 1 y       1.87406    0.85269  Myc1 Mys1
+Mn1_1_2 1 z       0.00000    0.00000  Mzc1 Mzs1
+Mn1_1_3 1 x       1.67563  -1.19618  Mxc1 Mxs1
+Mn1_1_3 1 y       1.87421    0.85315  Myc1 Mys1
+Mn1_1_3 1 z       0.00000    0.00000  Mzc1 Mzs1
+Mn1_1_4 1 x       1.67595    1.19654  Mxc1 Mxs1
+Mn1_1_4 1 y     -0.19811    2.04923  Myc1 Mys1
+Mn1_1_4 1 z       0.00000    0.00000  Mzc1 Mzs1
+Mn1_1_5 1 x       1.67548    1.19664  Mxc1 Mxs1
+Mn1_1_5 1 y     -0.19826    2.04969  Myc1 Mys1
+Mn1_1_5 1 z       0.00000    0.00000  Mzc1 Mzs1
+Mn1_1_6 1 x       1.67563    1.19618  Mxc1 Mxs1
+Mn1_1_6 1 y     -0.19858    2.04933  Myc1 Mys1
+Mn1_1_6 1 z       0.00000    0.00000  Mzc1 Mzs1
+
+
+# end of cif

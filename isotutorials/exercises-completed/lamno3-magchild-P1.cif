@@ -1,0 +1,103 @@
+# CIF file created by ISOCIF, version 3.1.1               
+# Magnetic Space Group: 1.1 P1.1
+# Lattice parameters: a= 5.74610, b= 7.66370, c= 5.53330, alpha= 90.00000, beta= 90.00000, gamma= 90.00000
+# La_1 1a (x,y,z;mx,my,mz), x= 0.05130, y= 0.25000, z=-0.00950
+# La_2 1a (x,y,z;mx,my,mz), x= 0.94870, y= 0.75000, z= 0.00950
+# La_3 1a (x,y,z;mx,my,mz), x= 0.55130, y= 0.25000, z= 0.50950
+# La_4 1a (x,y,z;mx,my,mz), x= 0.44870, y= 0.75000, z= 0.49050
+# Mn_1 1a (x,y,z;mx,my,mz), x= 0.00000, y= 0.00000, z= 0.50000, mx= 3.87000, my= 0.00000, mz= 0.00000
+# Mn_2 1a (x,y,z;mx,my,mz), x= 0.00000, y= 0.50000, z= 0.50000, mx=-3.87000, my= 0.00000, mz= 0.00000
+# Mn_3 1a (x,y,z;mx,my,mz), x= 0.50000, y= 0.50000, z= 0.00000, mx=-3.87000, my= 0.00000, mz= 0.00000
+# Mn_4 1a (x,y,z;mx,my,mz), x= 0.50000, y= 0.00000, z= 0.00000, mx= 3.87000, my= 0.00000, mz= 0.00000
+# O1_1 1a (x,y,z;mx,my,mz), x= 0.48490, y= 0.25000, z= 0.07770
+# O1_2 1a (x,y,z;mx,my,mz), x= 0.51510, y= 0.75000, z= 0.92230
+# O1_3 1a (x,y,z;mx,my,mz), x= 0.98490, y= 0.25000, z= 0.42230
+# O1_4 1a (x,y,z;mx,my,mz), x= 0.01510, y= 0.75000, z= 0.57770
+# O2_1 1a (x,y,z;mx,my,mz), x= 0.30850, y= 0.04080, z=-0.27730
+# O2_2 1a (x,y,z;mx,my,mz), x= 0.69150, y= 0.54080, z= 0.27730
+# O2_3 1a (x,y,z;mx,my,mz), x= 0.69150, y= 0.95920, z= 0.27730
+# O2_4 1a (x,y,z;mx,my,mz), x= 0.30850, y= 0.45920, z= 0.72270
+# O2_5 1a (x,y,z;mx,my,mz), x= 0.80850, y= 0.45920, z= 0.77730
+# O2_6 1a (x,y,z;mx,my,mz), x= 0.19150, y= 0.95920, z= 0.22270
+# O2_7 1a (x,y,z;mx,my,mz), x= 0.19150, y= 0.54080, z= 0.22270
+# O2_8 1a (x,y,z;mx,my,mz), x= 0.80850, y= 0.04080, z= 0.77730
+
+data_isocif-output
+_audit_creation_method ISOCIF
+
+_cell_length_a     5.74610
+_cell_length_b     7.66370
+_cell_length_c     5.53330
+_cell_angle_alpha  90.00000
+_cell_angle_beta   90.00000
+_cell_angle_gamma  90.00000
+_cell_volume       243.66654
+
+_space_group_magn.number_BNS "1.1"
+_space_group_magn.name_UNI "P1.1"
+_space_group_magn.name_BNS "P1"
+_space_group_magn.number_OG "1.1.1"
+_space_group_magn.name_OG "P1"
+_space_group_magn.point_group_number_Litvin "1.1.1"
+_space_group_magn.point_group_name_UNI "1.1"
+
+loop_
+_space_group_magn_transforms.id
+_space_group_magn_transforms.Pp_abc
+_space_group_magn_transforms.source
+1 a,b,c;0,0,0 "BNS"
+2 a,b,c;0,0,0 "OG"
+
+loop_
+_space_group_symop_magn_operation.id
+_space_group_symop_magn_operation.xyz
+1 x,y,z,+1 
+
+loop_
+_space_group_symop_magn_centering.id
+_space_group_symop_magn_centering.xyz
+1 x,y,z,+1 
+
+loop_
+_atom_site_label
+_atom_site_type_symbol
+_atom_site_symmetry_multiplicity
+_atom_site_Wyckoff_symbol
+_atom_site_fract_x
+_atom_site_fract_y
+_atom_site_fract_z
+_atom_site_occupancy
+_atom_site_fract_symmform
+La_1 La   1 a  0.05130  0.25000 -0.00950  1.00000 Dx,Dy,Dz 
+La_2 La   1 a -0.05130  0.75000  0.00950  1.00000 Dx,Dy,Dz 
+La_3 La   1 a  0.55130  0.25000  0.50950  1.00000 Dx,Dy,Dz 
+La_4 La   1 a  0.44870  0.75000  0.49050  1.00000 Dx,Dy,Dz 
+Mn_1 Mn   1 a  0.00000  0.00000  0.50000  1.00000 Dx,Dy,Dz 
+Mn_2 Mn   1 a  0.00000  0.50000  0.50000  1.00000 Dx,Dy,Dz 
+Mn_3 Mn   1 a  0.50000  0.50000  0.00000  1.00000 Dx,Dy,Dz 
+Mn_4 Mn   1 a  0.50000  0.00000  0.00000  1.00000 Dx,Dy,Dz 
+O1_1 O    1 a  0.48490  0.25000  0.07770  1.00000 Dx,Dy,Dz 
+O1_2 O    1 a  0.51510  0.75000 -0.07770  1.00000 Dx,Dy,Dz 
+O1_3 O    1 a -0.01510  0.25000  0.42230  1.00000 Dx,Dy,Dz 
+O1_4 O    1 a  0.01510  0.75000  0.57770  1.00000 Dx,Dy,Dz 
+O2_1 O    1 a  0.30850  0.04080  0.72270  1.00000 Dx,Dy,Dz 
+O2_2 O    1 a  0.69150  0.54080  0.27730  1.00000 Dx,Dy,Dz 
+O2_3 O    1 a  0.69150 -0.04080  0.27730  1.00000 Dx,Dy,Dz 
+O2_4 O    1 a  0.30850  0.45920  0.72270  1.00000 Dx,Dy,Dz 
+O2_5 O    1 a  0.80850  0.45920  0.77730  1.00000 Dx,Dy,Dz 
+O2_6 O    1 a  0.19150 -0.04080  0.22270  1.00000 Dx,Dy,Dz 
+O2_7 O    1 a  0.19150  0.54080  0.22270  1.00000 Dx,Dy,Dz 
+O2_8 O    1 a  0.80850  0.04080  0.77730  1.00000 Dx,Dy,Dz 
+
+loop_
+_atom_site_moment.label
+_atom_site_moment.crystalaxis_x
+_atom_site_moment.crystalaxis_y
+_atom_site_moment.crystalaxis_z
+_atom_site_moment.symmform
+Mn_1  3.87000  0.00000  0.00000 Mx,My,Mz 
+Mn_2 -3.87000  0.00000  0.00000 Mx,My,Mz 
+Mn_3 -3.87000  0.00000  0.00000 Mx,My,Mz 
+Mn_4  3.87000  0.00000  0.00000 Mx,My,Mz 
+
+# end of cif

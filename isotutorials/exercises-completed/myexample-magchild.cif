@@ -1,0 +1,66 @@
+# magnetic structure of MnO
+
+data_isocif-output
+_audit_creation_method ISOCIF
+
+_cell_length_a     5.44522
+_cell_length_b     3.14380
+_cell_length_c     6.28759
+_cell_angle_alpha  90.00000
+_cell_angle_beta   125.26439
+_cell_angle_gamma  90.00000
+_cell_volume       87.88382
+
+_space_group_magn.number_BNS "15.90"
+_space_group_magn.name_UNI "C2/c.1'_c[C2/m]"
+_space_group_magn.name_BNS "C_c2/c"
+_space_group_magn.number_OG "12.8.73"
+_space_group_magn.name_OG "C_2c2/m'"
+_space_group_magn.point_group_number_Litvin "5.2.13"
+_space_group_magn.point_group_name_UNI "2/m.1'"
+
+loop_
+_space_group_magn_transforms.id
+_space_group_magn_transforms.Pp_abc
+_space_group_magn_transforms.source
+1 a,b,c;0,0,0 "BNS"
+2 a,b,1/2c;0,1/2,-1/2 "OG"
+
+loop_
+_space_group_symop_magn_operation.id
+_space_group_symop_magn_operation.xyz
+1 x,y,z,+1 
+2 -x,y,-z+1/2,+1 
+3 -x,-y,-z,+1 
+4 x,-y,z+1/2,+1 
+
+loop_
+_space_group_symop_magn_centering.id
+_space_group_symop_magn_centering.xyz
+1 x,y,z,+1 
+2 x,y,z+1/2,-1 
+3 x+1/2,y+1/2,z,+1 
+4 x+1/2,y+1/2,z+1/2,-1 
+
+loop_
+_atom_site_label
+_atom_site_type_symbol
+_atom_site_symmetry_multiplicity
+_atom_site_Wyckoff_symbol
+_atom_site_fract_x
+_atom_site_fract_y
+_atom_site_fract_z
+_atom_site_occupancy
+_atom_site_fract_symmform
+Mn Mn   4 c  0.00000  0.00000  0.00000  1.00000 0,0,0 
+O  O    4 b  0.00000  0.50000  0.75000  1.00000 0,0,0 
+
+loop_
+_atom_site_moment.label
+_atom_site_moment.crystalaxis_x
+_atom_site_moment.crystalaxis_y
+_atom_site_moment.crystalaxis_z
+_atom_site_moment.symmform
+Mn -5.65832  0.00000  0.00000 Mx,0,Mz 
+
+# end of cif
