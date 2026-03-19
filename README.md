@@ -22,6 +22,13 @@ This folder separates the original BYU ISOTROPY package from the local scripts a
 
 The scripts in `scripts/` now resolve paths relative to this project root and leave `vendor/isobyu/` unchanged.
 
+Important entry points:
+
+- `scripts/discover_distortion_signatures.py`: parent-side structural distortion discovery
+- `scripts/generate_tutorial_reports.py`: distortion-file explanation/report generation
+- `scripts/explain_phase_transition.py`: transition-family classifier and workflow router
+- `scripts/reconstructive_transition_search.py`: parent+child reconstructive/common-subgroup search with `comsubs`
+
 ## Tutorial reports
 
 Use `./.venv/bin/python isotropy_project/scripts/generate_tutorial_reports.py` to turn the completed ISODISTORT distortion files in `isotutorials/exercises-completed/` into readable reports.
@@ -49,9 +56,17 @@ The discovery script now treats the local `iso` output in a way that matches the
 - it collapses repeated contributions on the same child site before applying the probe distortion
 - it calls a candidate `verified` only if both the predicted subgroup is recovered and the subgroup-cell embedding is geometrically exact or good
 - it can optionally catalog coupled-primary subgroup intersections, which is necessary when no single primary irrep can account for the observed child symmetry
+- it records per-query `iso` timing and cache-hit summaries so long runs can be profiled explicitly
+- it supports persistent ISO caches plus resumable checkpoints for the parent, k-point, branch, and irrep-screen stages
+- it can optionally sample parameterized commensurate k manifolds with explicit `KVALUE` inputs for catalog purposes
+- it can optionally catalog one-arm and kernel subgroup counts for additional symmetry context
 
 Each run writes HTML/JSON/Markdown summaries plus candidate CIFs and diffraction plots under `outputs/discovery_runs/<run_name>/`.
 
 The generated reports now include a transition-class coverage table so the workflow states explicitly which cases are implemented, which are only cataloged, and which still require other tools or a different script.
 
 See `docs/isotropy_transition_model.md` for the current conceptual model behind the automation.
+
+For a broader reverse-research summary, environment status, and a proposed roadmap toward a systematic phase-transition explainer, see `docs/systematic_phase_transition_research.md`.
+
+For the concrete implementation upgrades added after that research pass, see `docs/phase_search_upgrade_notes.md`.
