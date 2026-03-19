@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import hashlib
 import json
 import math
 import re
@@ -31,8 +32,10 @@ except ImportError as exc:
 
 try:
     from _isotropy_paths import DISCOVERY_RUNS_DIR, configure_environment, resolve_input_path
+    from findsym_tools import standardize_cif_with_fallback
 except ModuleNotFoundError:
     from isotropy_project.scripts._isotropy_paths import DISCOVERY_RUNS_DIR, configure_environment, resolve_input_path
+    from isotropy_project.scripts.findsym_tools import standardize_cif_with_fallback
 
 
 configure_environment()
@@ -70,6 +73,7 @@ class SiteSummary:
 class ParentInfo:
     source_cif: str
     standardized_cif: str
+    standardization_method: str
     formula: str
     sg_num: int
     sg_symbol: str
@@ -103,14 +107,49 @@ class BranchInfo:
     origin_text: str
     origin_vector: list[float]
     is_primary_direction: bool
+    continuity: str | None
 
 
 class IsoSession:
-    def __init__(self) -> None:
+    def __init__(self, cache_dir: Path | None = None) -> None:
         self.call_count = 0
+        self.cache: dict[tuple[str, int, int], str] = {}
+        self.cache_hits = 0
+        self.command_timings: dict[str, dict[str, float]] = {}
+        self.cache_dir = cache_dir
+        if self.cache_dir is not None:
+            self.cache_dir.mkdir(parents=True, exist_ok=True)
 
-    def run(self, commands: str, *, timeout_seconds: int = ISO_TIMEOUT_SECONDS, prompt_returns: int = 0) -> str:
+    def _disk_cache_path(self, cache_key: tuple[str, int, int]) -> Path | None:
+        if self.cache_dir is None:
+            return None
+        digest = hashlib.sha256(repr(cache_key).encode("utf-8")).hexdigest()
+        return self.cache_dir / f"{digest}.txt"
+
+    def run(
+        self,
+        commands: str,
+        *,
+        timeout_seconds: int = ISO_TIMEOUT_SECONDS,
+        prompt_returns: int = 0,
+        cacheable: bool = True,
+        label: str = "iso_query",
+    ) -> str:
         self.call_count += 1
+        cache_key = (commands.strip(), timeout_seconds, prompt_returns)
+        if cacheable and cache_key in self.cache:
+            self.cache_hits += 1
+            stats = self.command_timings.setdefault(label, {"count": 0.0, "seconds": 0.0, "cache_hits": 0.0})
+            stats["cache_hits"] += 1.0
+            return self.cache[cache_key]
+        disk_cache_path = self._disk_cache_path(cache_key)
+        if cacheable and disk_cache_path is not None and disk_cache_path.exists():
+            self.cache_hits += 1
+            output = disk_cache_path.read_text(encoding="utf-8")
+            self.cache[cache_key] = output
+            stats = self.command_timings.setdefault(label, {"count": 0.0, "seconds": 0.0, "cache_hits": 0.0})
+            stats["cache_hits"] += 1.0
+            return output
         full_cmd = (
             f"PAGE {PAGE_LENGTH}\n"
             f"SCREEN {SCREEN_WIDTH}\n"
@@ -118,6 +157,7 @@ class IsoSession:
             f"{chr(10) * prompt_returns}"
             "QUIT\n"
         )
+        started = time.perf_counter()
         try:
             result = subprocess.run(
                 ["iso"],
@@ -128,8 +168,18 @@ class IsoSession:
                 timeout=timeout_seconds,
             )
         except subprocess.TimeoutExpired as exc:
-            return exc.stdout or ""
-        return result.stdout
+            output = exc.stdout or ""
+        else:
+            output = result.stdout
+        elapsed = time.perf_counter() - started
+        stats = self.command_timings.setdefault(label, {"count": 0.0, "seconds": 0.0, "cache_hits": 0.0})
+        stats["count"] += 1.0
+        stats["seconds"] += elapsed
+        if cacheable:
+            self.cache[cache_key] = output
+            if disk_cache_path is not None:
+                disk_cache_path.write_text(output, encoding="utf-8")
+        return output
 
 
 def parse_number(token: str) -> float:
@@ -189,13 +239,9 @@ def structure_signature(structure: Structure) -> str:
 
 
 def standardize_parent(parent_cif: Path, run_dir: Path) -> tuple[ParentInfo, Structure]:
-    raw_structure = CifParser(str(parent_cif)).parse_structures(primitive=False)[0]
-    raw_analyzer = SpacegroupAnalyzer(raw_structure, symprec=PARENT_SYMPREC)
-
-    standard_structure = raw_analyzer.get_conventional_standard_structure()
     standard_path = run_dir / "parent_standardized.cif"
-    CifWriter(standard_structure).write_file(standard_path)
-
+    standardization = standardize_cif_with_fallback(parent_cif, standard_path, symprec=PARENT_SYMPREC, findsym_tolerance=PARENT_SYMPREC)
+    standard_structure = standardization.structure
     analyzer = SpacegroupAnalyzer(standard_structure, symprec=PARENT_SYMPREC)
     dataset = analyzer.get_symmetry_dataset()
 
@@ -216,16 +262,48 @@ def standardize_parent(parent_cif: Path, run_dir: Path) -> tuple[ParentInfo, Str
     parent_info = ParentInfo(
         source_cif=str(parent_cif),
         standardized_cif=str(standard_path),
+        standardization_method=standardization.method,
         formula=standard_structure.composition.reduced_formula,
         sg_num=analyzer.get_space_group_number(),
         sg_symbol=analyzer.get_space_group_symbol(),
         lattice_parameters=[float(value) for value in standard_structure.lattice.abc + standard_structure.lattice.angles],
         site_summaries=site_summaries,
         occupied_wyckoffs=sorted(set(occupied_wyckoffs)),
-        raw_sg_num=raw_analyzer.get_space_group_number(),
-        raw_sg_symbol=raw_analyzer.get_space_group_symbol(),
+        raw_sg_num=standardization.raw_space_group_number,
+        raw_sg_symbol=standardization.raw_space_group_symbol,
     )
     return parent_info, standard_structure
+
+
+def write_json(path: Path, data: object) -> None:
+    path.write_text(json.dumps(data, indent=2), encoding="utf-8")
+
+
+def load_parent_checkpoint(path: Path) -> tuple[ParentInfo, Structure]:
+    data = json.loads(path.read_text(encoding="utf-8"))
+    parent_info = ParentInfo(
+        source_cif=data["source_cif"],
+        standardized_cif=data["standardized_cif"],
+        standardization_method=data["standardization_method"],
+        formula=data["formula"],
+        sg_num=data["sg_num"],
+        sg_symbol=data["sg_symbol"],
+        lattice_parameters=data["lattice_parameters"],
+        site_summaries=[SiteSummary(**site) for site in data["site_summaries"]],
+        occupied_wyckoffs=data["occupied_wyckoffs"],
+        raw_sg_num=data["raw_sg_num"],
+        raw_sg_symbol=data["raw_sg_symbol"],
+    )
+    structure = CifParser(parent_info.standardized_cif).parse_structures(primitive=False)[0]
+    return parent_info, structure
+
+
+def load_kpoint_checkpoint(path: Path) -> list[KPointInfo]:
+    return [KPointInfo(**row) for row in json.loads(path.read_text(encoding="utf-8"))]
+
+
+def load_branch_checkpoint(path: Path) -> list[BranchInfo]:
+    return [BranchInfo(**row) for row in json.loads(path.read_text(encoding="utf-8"))]
 
 
 def get_kpoints(iso: IsoSession, parent_sg: int) -> list[KPointInfo]:
@@ -234,7 +312,8 @@ def get_kpoints(iso: IsoSession, parent_sg: int) -> list[KPointInfo]:
         VALUE PARENT {parent_sg}
         SHOW KPOINT
         DISPLAY KPOINT
-        """
+        """,
+        label="get_kpoints",
     )
     kpoints: list[KPointInfo] = []
     for line in out.splitlines():
@@ -252,14 +331,16 @@ def get_kpoints(iso: IsoSession, parent_sg: int) -> list[KPointInfo]:
     return kpoints
 
 
-def get_irreps(iso: IsoSession, parent_sg: int, kpoint: str) -> list[str]:
+def get_irreps(iso: IsoSession, parent_sg: int, kpoint: str, *, kvalue_clause: str = "") -> list[str]:
     out = iso.run(
         f"""
         VALUE PARENT {parent_sg}
+        {kvalue_clause}
         VALUE KPOINT {kpoint}
         SHOW IRREP
         DISPLAY IRREP
-        """
+        """,
+        label="get_irreps",
     )
     irreps: list[str] = []
     header_seen = False
@@ -276,22 +357,36 @@ def get_irreps(iso: IsoSession, parent_sg: int, kpoint: str) -> list[str]:
     return irreps
 
 
-def get_subgroups(iso: IsoSession, parent_sg: int, kpoint: str, irrep: str) -> list[dict[str, object]]:
+def get_subgroups(
+    iso: IsoSession,
+    parent_sg: int,
+    kpoint: str,
+    irrep: str,
+    *,
+    kvalue_clause: str = "",
+    direction_selector: str | None = None,
+    query_label: str = "get_subgroups",
+) -> list[dict[str, object]]:
+    direction_clause = f"VALUE DIRECTION {direction_selector}" if direction_selector else ""
     out = iso.run(
         f"""
         VALUE PARENT {parent_sg}
+        {kvalue_clause}
         VALUE KPOINT {kpoint}
         VALUE IRREP {irrep}
+        {direction_clause}
         SHOW SUBGROUP
+        SHOW CONTINUOUS
         SHOW DIRECTION
         SHOW DIRECTION VECTOR
         SHOW BASIS
         SHOW ORIGIN
         DISPLAY ISOTROPY
-        """
+        """,
+        label=query_label,
     )
     pattern = re.compile(
-        r"^(\d+)\s+(\S+)\s+(\S+)\s+(\(.+?\))\s+(\([^)]*\),\([^)]*\),\([^)]*\))\s+(\([^)]*\))$"
+        r"^(\d+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\(.+?\))\s+(\([^)]*\),\([^)]*\),\([^)]*\))\s+(\([^)]*\))$"
     )
     subgroups: list[dict[str, object]] = []
     for line in out.splitlines():
@@ -302,12 +397,13 @@ def get_subgroups(iso: IsoSession, parent_sg: int, kpoint: str, irrep: str) -> l
             {
                 "sg_num": int(match.group(1)),
                 "symbol": match.group(2),
-                "direction": match.group(3),
-                "order_parameter": match.group(4),
-                "basis_text": match.group(5),
-                "basis_matrix": parse_basis_vectors(match.group(5)),
-                "origin_text": match.group(6),
-                "origin_vector": parse_vector(match.group(6)),
+                "continuity": match.group(3),
+                "direction": match.group(4),
+                "order_parameter": match.group(5),
+                "basis_text": match.group(6),
+                "basis_matrix": parse_basis_vectors(match.group(6)),
+                "origin_text": match.group(7),
+                "origin_vector": parse_vector(match.group(7)),
             }
         )
     return subgroups
@@ -322,7 +418,8 @@ def get_domain_count(iso: IsoSession, parent_sg: int, kpoint: str, irrep: str, d
         VALUE DIRECTION {direction}
         SHOW DOMAINS
         DISPLAY ISOTROPY
-        """
+        """,
+        label="get_domain_count",
     )
     domain_lines = [line.strip() for line in out.splitlines() if line.strip().isdigit()]
     return len(domain_lines) if domain_lines else None
@@ -346,7 +443,8 @@ def get_vector_distortion_rows(
         SHOW WYCKOFF
         SHOW MICROSCOPIC VECTOR
         DISPLAY DISTORTION
-        """
+        """,
+        label="get_vector_distortion_rows",
     )
     rows: list[tuple[str, list[float], list[float]]] = []
     current_wyckoff: str | None = None
@@ -432,6 +530,7 @@ def get_coupled_subgroups(
         """,
         timeout_seconds=COUPLED_TIMEOUT_SECONDS,
         prompt_returns=1,
+        label="get_coupled_subgroups",
     )
     pattern = re.compile(
         r"^(\S+)\s+(\d+)\s+(\S+)\s+(\S+)\s+(\(.+?\))\s+(\([^)]*\),\([^)]*\),\([^)]*\))\s+(\([^)]*\))$"
@@ -480,13 +579,22 @@ def transition_class_rows(report_settings: dict[str, object], stats: dict[str, o
         },
         {
             "class": "Parameterized commensurate k-lines / k-planes",
-            "status": "documented_only",
-            "detail": f"{stats['parameterized_kpoint_count']} parameterized k manifolds are listed but not expanded automatically.",
+            "status": "cataloged" if report_settings["parameterized_k_samples"] else "documented_only",
+            "detail": (
+                f"{stats['parameterized_catalog_entry_count']} sampled parameterized-k catalogs across {stats['parameterized_kpoint_count']} manifolds "
+                f"using KVALUE samples {', '.join(report_settings['parameterized_k_samples'])}."
+                if report_settings["parameterized_k_samples"]
+                else f"{stats['parameterized_kpoint_count']} parameterized k manifolds are listed but not expanded automatically."
+            ),
         },
         {
             "class": "One-arm and kernel-only searches",
-            "status": "not_yet_automated",
-            "detail": "Supported by ISOTROPY commands, but not yet scripted in this workflow.",
+            "status": "cataloged" if report_settings["include_onearm_kernel"] else "not_yet_automated",
+            "detail": (
+                f"Cataloged kernel/one-arm summaries for {stats['onearm_kernel_entry_count']} irrep selections."
+                if report_settings["include_onearm_kernel"]
+                else "Supported by ISOTROPY commands, but not yet scripted in this workflow."
+            ),
         },
         {
             "class": "Incommensurate superspace transitions",
@@ -542,10 +650,95 @@ def build_branch_catalog(
                         origin_text=str(subgroup["origin_text"]),
                         origin_vector=[float(value) for value in subgroup["origin_vector"]],
                         is_primary_direction=str(subgroup["direction"]).startswith(MODELING_DIRECTION_PREFIX),
+                        continuity=str(subgroup.get("continuity")) if subgroup.get("continuity") is not None else None,
                     )
                 )
                 counter += 1
     return branches, fixed_kpoints
+
+
+def kvalue_clause_for_coordinates(coordinates: str, samples: list[str]) -> str:
+    variables = sorted(set(re.findall(r"[a-z]", coordinates)))
+    if not variables:
+        return ""
+    if not samples:
+        raise ValueError("Parameterized k-point expansion requested without any KVALUE samples.")
+    values = list(samples[: len(variables)])
+    while len(values) < len(variables):
+        values.append(samples[-1])
+    return f"VALUE KVALUE {len(values)},{','.join(values)}"
+
+
+def catalog_parameterized_kpoints(
+    iso: IsoSession,
+    parent_info: ParentInfo,
+    kpoints: list[KPointInfo],
+    samples: list[str],
+) -> list[dict[str, object]]:
+    rows: list[dict[str, object]] = []
+    for kpoint in [item for item in kpoints if not item.is_fixed]:
+        kvalue_clause = kvalue_clause_for_coordinates(kpoint.coordinates, samples)
+        irreps = get_irreps(iso, parent_info.sg_num, kpoint.label, kvalue_clause=kvalue_clause)
+        subgroup_count = 0
+        for irrep in irreps:
+            subgroup_count += len(
+                get_subgroups(
+                    iso,
+                    parent_info.sg_num,
+                    kpoint.label,
+                    irrep,
+                    kvalue_clause=kvalue_clause,
+                    query_label="get_parameterized_subgroups",
+                )
+            )
+        rows.append(
+            {
+                "kpoint": kpoint.label,
+                "coordinates": kpoint.coordinates,
+                "kvalue_clause": kvalue_clause,
+                "irrep_count": len(irreps),
+                "subgroup_count": subgroup_count,
+            }
+        )
+    return rows
+
+
+def catalog_onearm_and_kernel(
+    iso: IsoSession,
+    parent_info: ParentInfo,
+    kpoints: list[KPointInfo],
+) -> list[dict[str, object]]:
+    rows: list[dict[str, object]] = []
+    for kpoint in kpoints:
+        for irrep in get_irreps(iso, parent_info.sg_num, kpoint.label):
+            kernel_subgroups = get_subgroups(
+                iso,
+                parent_info.sg_num,
+                kpoint.label,
+                irrep,
+                direction_selector="KERNEL",
+                query_label="get_kernel_subgroups",
+            )
+            onearm_subgroups: list[dict[str, object]] = []
+            if not kpoint.is_fixed:
+                onearm_subgroups = get_subgroups(
+                    iso,
+                    parent_info.sg_num,
+                    kpoint.label,
+                    irrep,
+                    direction_selector="ONEARM",
+                    query_label="get_onearm_subgroups",
+                )
+            rows.append(
+                {
+                    "kpoint": kpoint.label,
+                    "coordinates": kpoint.coordinates,
+                    "irrep": irrep,
+                    "kernel_subgroup_count": len(kernel_subgroups),
+                    "onearm_subgroup_count": len(onearm_subgroups),
+                }
+            )
+    return rows
 
 
 def basis_det(basis_matrix: list[list[float]]) -> float:
@@ -1014,26 +1207,73 @@ def run_pipeline(args: argparse.Namespace) -> dict[str, object]:
     run_dir = DISCOVERY_RUNS_DIR / args.label
     structure_dir = run_dir / "candidate_structures"
     plot_dir = run_dir / "signature_plots"
+    checkpoint_dir = run_dir / "checkpoints"
+    iso_cache_dir = run_dir / "iso_cache"
     run_dir.mkdir(parents=True, exist_ok=True)
     structure_dir.mkdir(parents=True, exist_ok=True)
     plot_dir.mkdir(parents=True, exist_ok=True)
+    checkpoint_dir.mkdir(parents=True, exist_ok=True)
+    iso_cache_dir.mkdir(parents=True, exist_ok=True)
 
     timings: dict[str, float] = {}
+    checkpoint_hits: list[str] = []
 
-    t0 = time.perf_counter()
     parent_path = resolve_input_path(args.parent_cif)
-    parent_info, parent_structure = standardize_parent(parent_path, run_dir)
+    parent_checkpoint = checkpoint_dir / "parent.json"
+    t0 = time.perf_counter()
+    if args.resume and parent_checkpoint.exists():
+        parent_info, parent_structure = load_parent_checkpoint(parent_checkpoint)
+        checkpoint_hits.append("parent")
+    else:
+        parent_info, parent_structure = standardize_parent(parent_path, run_dir)
+        write_json(parent_checkpoint, asdict(parent_info))
     timings["parent_standardization_seconds"] = round(time.perf_counter() - t0, 3)
 
-    iso = IsoSession()
+    iso = IsoSession(cache_dir=iso_cache_dir)
 
+    kpoints_checkpoint = checkpoint_dir / "kpoints.json"
+    branches_checkpoint = checkpoint_dir / "branches.json"
     t0 = time.perf_counter()
-    kpoints = get_kpoints(iso, parent_info.sg_num)
-    branches, fixed_kpoints = build_branch_catalog(iso, parent_info, kpoints)
+    if args.resume and kpoints_checkpoint.exists():
+        kpoints = load_kpoint_checkpoint(kpoints_checkpoint)
+        checkpoint_hits.append("kpoints")
+    else:
+        kpoints = get_kpoints(iso, parent_info.sg_num)
+        write_json(kpoints_checkpoint, [asdict(kpoint) for kpoint in kpoints])
+
+    if args.resume and branches_checkpoint.exists():
+        branches = load_branch_checkpoint(branches_checkpoint)
+        fixed_kpoints = [kpoint for kpoint in kpoints if kpoint.is_fixed]
+        checkpoint_hits.append("branches")
+    else:
+        branches, fixed_kpoints = build_branch_catalog(iso, parent_info, kpoints)
+        write_json(branches_checkpoint, [asdict(branch) for branch in branches])
     timings["catalog_enumeration_seconds"] = round(time.perf_counter() - t0, 3)
 
+    parameterized_catalog: list[dict[str, object]] = []
+    if args.parameterized_k_samples:
+        t0 = time.perf_counter()
+        parameterized_catalog = catalog_parameterized_kpoints(iso, parent_info, kpoints, args.parameterized_k_samples)
+        timings["parameterized_catalog_seconds"] = round(time.perf_counter() - t0, 3)
+
+    onearm_kernel_catalog: list[dict[str, object]] = []
+    if args.include_onearm_kernel:
+        t0 = time.perf_counter()
+        onearm_kernel_catalog = catalog_onearm_and_kernel(iso, parent_info, kpoints)
+        timings["onearm_kernel_catalog_seconds"] = round(time.perf_counter() - t0, 3)
+
+    irrep_screen_checkpoint = checkpoint_dir / "irrep_screen.json"
+    rows_cache_checkpoint = checkpoint_dir / "rows_cache.json"
     t0 = time.perf_counter()
-    irrep_screen, rows_cache = screen_irrep_channels(iso, parent_info, branches)
+    if args.resume and irrep_screen_checkpoint.exists() and rows_cache_checkpoint.exists():
+        irrep_screen = json.loads(irrep_screen_checkpoint.read_text(encoding="utf-8"))
+        raw_rows_cache = json.loads(rows_cache_checkpoint.read_text(encoding="utf-8"))
+        rows_cache = {key: value for key, value in raw_rows_cache.items()}
+        checkpoint_hits.append("irrep_screen")
+    else:
+        irrep_screen, rows_cache = screen_irrep_channels(iso, parent_info, branches)
+        write_json(irrep_screen_checkpoint, irrep_screen)
+        write_json(rows_cache_checkpoint, rows_cache)
     timings["irrep_channel_screening_seconds"] = round(time.perf_counter() - t0, 3)
 
     domain_counts: dict[str, int | None] = {}
@@ -1052,7 +1292,7 @@ def run_pipeline(args: argparse.Namespace) -> dict[str, object]:
 
     t0 = time.perf_counter()
     primary_branches = [branch for branch in branches if branch.is_primary_direction]
-    if args.max_modeled:
+    if args.max_modeled is not None:
         primary_branches = primary_branches[: args.max_modeled]
 
     for candidate_index, branch in enumerate(primary_branches, start=1):
@@ -1256,8 +1496,11 @@ def run_pipeline(args: argparse.Namespace) -> dict[str, object]:
     single_irrep_verified = len([candidate for candidate in modeled_candidates if candidate["status"] == "verified"])
     stats = {
         "iso_call_count": iso.call_count,
+        "iso_cache_hit_count": iso.cache_hits,
+        "checkpoint_hit_count": len(checkpoint_hits),
         "fixed_kpoint_count": len(fixed_kpoints),
         "parameterized_kpoint_count": len([kpoint for kpoint in kpoints if not kpoint.is_fixed]),
+        "parameterized_catalog_entry_count": len(parameterized_catalog),
         "catalog_branch_count": len(branches),
         "unique_subgroup_count": len(unique_subgroups),
         "screened_irrep_count": len(irrep_screen),
@@ -1271,6 +1514,7 @@ def run_pipeline(args: argparse.Namespace) -> dict[str, object]:
         "coupled_pair_count": len(coupled_pairs),
         "coupled_subgroup_count": len(coupled_subgroups),
         "possible_coupled_pair_count": possible_coupled_pair_count,
+        "onearm_kernel_entry_count": len(onearm_kernel_catalog),
     }
 
     return {
@@ -1281,16 +1525,29 @@ def run_pipeline(args: argparse.Namespace) -> dict[str, object]:
             "modeled_direction_prefix": MODELING_DIRECTION_PREFIX,
             "max_modeled": args.max_modeled,
             "include_coupled_catalog": args.include_coupled_catalog,
+            "include_onearm_kernel": args.include_onearm_kernel,
             "max_coupled_pairs": args.max_coupled_pairs,
+            "resume": args.resume,
+            "checkpoint_hits": checkpoint_hits,
             "fixed_kpoints_only": True,
-            "parameterized_k_manifolds_documented_only": True,
+            "parameterized_k_samples": args.parameterized_k_samples,
             "residual_peaks_file": args.residual_peaks,
         },
         "timings": timings,
+        "iso_queries": {
+            label: {
+                "count": int(values["count"]),
+                "seconds": round(values["seconds"], 3),
+                "cache_hits": int(values["cache_hits"]),
+            }
+            for label, values in sorted(iso.command_timings.items())
+        },
         "stats": stats,
         "transition_classes": transition_class_rows(
             {
                 "include_coupled_catalog": args.include_coupled_catalog,
+                "include_onearm_kernel": args.include_onearm_kernel,
+                "parameterized_k_samples": args.parameterized_k_samples,
             },
             stats,
         ),
@@ -1302,6 +1559,8 @@ def run_pipeline(args: argparse.Namespace) -> dict[str, object]:
         "modeled_candidates": modeled_candidates,
         "coupled_pairs": coupled_pairs,
         "coupled_subgroups": coupled_subgroups,
+        "parameterized_catalog": parameterized_catalog,
+        "onearm_kernel_catalog": onearm_kernel_catalog,
         "signature_groups": signature_rows,
         "residual_peaks": residual_peaks,
         "residual_ranking": [
@@ -1339,6 +1598,7 @@ def render_html(report: dict[str, object], run_dir: Path) -> str:
     summary_rows = [
         ["Parent formula", html_escape(parent["formula"])],
         ["Parent space group", f"{parent['sg_num']} {html_escape(parent['sg_symbol'])}"],
+        ["Parent standardization", html_escape(parent["standardization_method"])],
         ["Cataloged single-irrep branches", str(stats["catalog_branch_count"])],
         ["Unique subgroup hypotheses", str(stats["unique_subgroup_count"])],
         ["Screened fixed-k irreps", str(stats["screened_irrep_count"])],
@@ -1349,11 +1609,19 @@ def render_html(report: dict[str, object], run_dir: Path) -> str:
         ["Embedding failures", str(stats["embedding_failed_count"])],
         ["Coupled irrep pairs cataloged", f"{stats['coupled_pair_count']} / {stats['possible_coupled_pair_count']}"],
         ["Coupled subgroup branches", str(stats["coupled_subgroup_count"])],
+        ["Parameterized-k catalogs", str(stats["parameterized_catalog_entry_count"])],
+        ["One-arm/kernel catalogs", str(stats["onearm_kernel_entry_count"])],
         ["Signature groups", str(stats["signature_group_count"])],
         ["ISO calls", str(stats["iso_call_count"])],
+        ["ISO cache hits", str(stats["iso_cache_hit_count"])],
+        ["Checkpoint hits", str(stats["checkpoint_hit_count"])],
     ]
 
     timing_rows = [[key.replace("_", " "), f"{value:.3f} s"] for key, value in report["timings"].items()]
+    iso_query_rows = [
+        [label, str(values["count"]), f"{values['seconds']:.3f} s", str(values["cache_hits"])]
+        for label, values in report["iso_queries"].items()
+    ]
     subgroup_rows = [
         [
             row["subgroup_id"],
@@ -1400,6 +1668,26 @@ def render_html(report: dict[str, object], run_dir: Path) -> str:
             html_escape(row["order_parameter"]),
         ]
         for row in report["coupled_subgroups"][:60]
+    ]
+    parameterized_rows = [
+        [
+            row["kpoint"],
+            html_escape(row["coordinates"]),
+            html_escape(row["kvalue_clause"]),
+            str(row["irrep_count"]),
+            str(row["subgroup_count"]),
+        ]
+        for row in report["parameterized_catalog"]
+    ]
+    onearm_kernel_rows = [
+        [
+            html_escape(row["kpoint"]),
+            html_escape(row["coordinates"]),
+            html_escape(row["irrep"]),
+            str(row["kernel_subgroup_count"]),
+            str(row["onearm_subgroup_count"]),
+        ]
+        for row in report["onearm_kernel_catalog"][:120]
     ]
 
     candidate_rows = []
@@ -1629,13 +1917,17 @@ def render_html(report: dict[str, object], run_dir: Path) -> str:
         <p><strong>Expanded rigorously</strong>: fixed special k-points, single irreps, all subgroup directions</p>
         <p><strong>Modeled expensively</strong>: primary <code>{MODELING_DIRECTION_PREFIX}...</code> directions only</p>
         <p><strong>Coupled-primary catalog</strong>: {'enabled' if report['settings']['include_coupled_catalog'] else 'disabled'}</p>
-        <p><strong>Parameterized manifolds</strong>: documented only in this first pass</p>
+        <p><strong>Parameterized manifolds</strong>: {'sampled with ' + html_escape(', '.join(report['settings']['parameterized_k_samples'])) if report['settings']['parameterized_k_samples'] else 'documented only in this first pass'}</p>
+        <p><strong>One-arm / kernel catalog</strong>: {'enabled' if report['settings']['include_onearm_kernel'] else 'disabled'}</p>
+        <p><strong>Resume mode</strong>: {'enabled' if report['settings']['resume'] else 'disabled'}; checkpoints hit: {html_escape(', '.join(report['settings']['checkpoint_hits']) or 'none')}</p>
         <h3>Method</h3>
         {methodology}
       </section>
       <section class="panel">
         <h2>Timing</h2>
         {make_html_table(["Step", "Time"], timing_rows)}
+        <h3>ISO Query Breakdown</h3>
+        {make_html_table(["Query", "Calls", "Runtime", "Cache hits"], iso_query_rows or [["none", "0", "0.000 s", "0"]])}
         <h3>Limits</h3>
         {limitations}
       </section>
@@ -1657,6 +1949,7 @@ def render_html(report: dict[str, object], run_dir: Path) -> str:
               ["Raw SG", f"{parent['raw_sg_num']} {html_escape(parent['raw_sg_symbol'])}"],
               ["Standardized SG", f"{parent['sg_num']} {html_escape(parent['sg_symbol'])}"],
               ["Formula", html_escape(parent["formula"])],
+              ["Standardization method", html_escape(parent["standardization_method"])],
               ["Occupied Wyckoffs", html_escape(', '.join(parent['occupied_wyckoffs']))],
           ],
       )}
@@ -1680,6 +1973,18 @@ def render_html(report: dict[str, object], run_dir: Path) -> str:
       <p><strong>Expanded pairs</strong>: {stats['coupled_pair_count']} of {stats['possible_coupled_pair_count']} screened vector-active irrep pairs.</p>
       {make_html_table(["Pair", "Irrep A", "Irrep B", "Subgroups"], coupled_pair_rows or [["Not run", "", "", ""]])}
       {make_html_table(["Coupled ID", "Pair", "Subgroup", "Direction", "Order parameter"], coupled_subgroup_rows or [["None", "", "", "", ""]])}
+    </section>
+
+    <section class="panel">
+      <h2>Parameterized k-Manifold Catalog</h2>
+      <p>These rows are sampled catalogs, not full child-structure builds. They are included so the search can move beyond fixed special k-points without pretending that arbitrary rational sampling is exhaustive.</p>
+      {make_html_table(["k-point", "Coordinates", "KVALUE", "Irreps", "Subgroups"], parameterized_rows or [["Not sampled", "", "", "", ""]])}
+    </section>
+
+    <section class="panel">
+      <h2>One-Arm And Kernel Catalog</h2>
+      <p>The kernel summarizes generic-direction isotropy, while one-arm searches restrict parameterized stars to a single arm when that is symmetry-meaningful. These are catalog entries only in the current workflow.</p>
+      {make_html_table(["k", "Coordinates", "Irrep", "Kernel subgroups", "One-arm subgroups"], onearm_kernel_rows or [["Not run", "", "", "", ""]])}
     </section>
 
     <section class="panel">
@@ -1722,14 +2027,24 @@ def render_markdown(report: dict[str, object]) -> str:
         f"- Embedding failures: `{report['stats']['embedding_failed_count']}`",
         f"- Coupled irrep pairs cataloged: `{report['stats']['coupled_pair_count']} / {report['stats']['possible_coupled_pair_count']}`",
         f"- Coupled subgroup branches: `{report['stats']['coupled_subgroup_count']}`",
+        f"- Parameterized-k catalogs: `{report['stats']['parameterized_catalog_entry_count']}`",
+        f"- One-arm/kernel catalogs: `{report['stats']['onearm_kernel_entry_count']}`",
         f"- Signature groups: `{report['stats']['signature_group_count']}`",
         f"- ISO calls: `{report['stats']['iso_call_count']}`",
+        f"- ISO cache hits: `{report['stats']['iso_cache_hit_count']}`",
+        f"- Checkpoint hits: `{report['stats']['checkpoint_hit_count']}`",
         "",
         "## Scope",
         "- Fixed special k-points are expanded rigorously.",
-        "- Parameterized k-lines/planes/general q vectors are documented only in this first pass.",
+        (
+            f"- Parameterized k-lines/planes/general q vectors are sampled with KVALUE inputs `{', '.join(report['settings']['parameterized_k_samples'])}`."
+            if report["settings"]["parameterized_k_samples"]
+            else "- Parameterized k-lines/planes/general q vectors are documented only in this first pass."
+        ),
         "- Primary `P...` branches are the only ones carried through to canonical probe distortions.",
         f"- Coupled-primary catalog: `{'enabled' if report['settings']['include_coupled_catalog'] else 'disabled'}`.",
+        f"- One-arm/kernel catalog: `{'enabled' if report['settings']['include_onearm_kernel'] else 'disabled'}`.",
+        f"- Resume mode: `{'enabled' if report['settings']['resume'] else 'disabled'}` with checkpoint hits `{', '.join(report['settings']['checkpoint_hits']) or 'none'}`.",
         "- `DISPLAY DISTORTION` rows are transformed from the parent-basis display cell into subgroup fractional coordinates before site matching.",
         "- Repeated projected-vector contributions on the same child site are summed before the probe distortion is applied.",
         "- Probe distortions are signature probes, not refined child structures.",
@@ -1745,6 +2060,16 @@ def render_markdown(report: dict[str, object]) -> str:
         ]
     )
     lines.extend(f"- `{key}`: {value:.3f} s" for key, value in report["timings"].items())
+    lines.extend(
+        [
+            "",
+            "## ISO Query Breakdown",
+        ]
+    )
+    for label, values in report["iso_queries"].items():
+        lines.append(
+            f"- `{label}`: calls `{values['count']}`, runtime `{values['seconds']:.3f}` s, cache hits `{values['cache_hits']}`"
+        )
     lines.extend(
         [
             "",
@@ -1783,6 +2108,26 @@ def render_markdown(report: dict[str, object]) -> str:
     lines.extend(
         [
             "",
+            "## Parameterized k-Manifold Catalog",
+        ]
+    )
+    for row in report["parameterized_catalog"]:
+        lines.append(
+            f"- `{row['kpoint']}` `{row['coordinates']}` with `{row['kvalue_clause']}` -> irreps `{row['irrep_count']}`, subgroup branches `{row['subgroup_count']}`"
+        )
+    lines.extend(
+        [
+            "",
+            "## One-Arm And Kernel Catalog",
+        ]
+    )
+    for row in report["onearm_kernel_catalog"]:
+        lines.append(
+            f"- `{row['kpoint']} / {row['irrep']}` -> kernel `{row['kernel_subgroup_count']}`, one-arm `{row['onearm_subgroup_count']}`"
+        )
+    lines.extend(
+        [
+            "",
             "## Modeled Candidates",
         ]
     )
@@ -1815,7 +2160,20 @@ def main() -> None:
     parser.add_argument("--amplitude", type=float, default=PROBE_AMPLITUDE, help="Canonical probe amplitude in fractional mode units.")
     parser.add_argument("--max-modeled", type=int, default=60, help="Maximum number of primary branches to model.")
     parser.add_argument("--include-coupled-catalog", action="store_true", help="Also catalog coupled-primary fixed-k subgroup intersections for screened vector-active irreps.")
+    parser.add_argument("--include-onearm-kernel", action="store_true", help="Also catalog kernel and one-arm subgroup counts for the available irreps.")
     parser.add_argument("--max-coupled-pairs", type=int, default=20, help="Maximum number of screened irrep pairs to expand in the coupled-primary catalog.")
+    parser.add_argument(
+        "--resume",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="Reuse discovery checkpoints and persistent ISO query caches when available.",
+    )
+    parser.add_argument(
+        "--parameterized-k-samples",
+        nargs="+",
+        default=[],
+        help="Optional rational KVALUE samples such as 1/4 or 1/3 to expand parameterized commensurate k manifolds in catalog form.",
+    )
     parser.add_argument("--residual-peaks", help="Optional CSV/JSON file of residual peak positions for ranking candidates.")
     args = parser.parse_args()
 
