@@ -324,7 +324,10 @@ def build_example_record(data: DistortionReportData, source_path: Path, output_d
             "channels": channel_rows,
             "active_channels": active_mode_channels(data),
             "primary_irreps": data.primary_irreps,
+            "magnetic_modes": data.magnetic_mode_metadata,
+            "magnetic_secondary_linkages": data.magnetic_secondary_linkages,
         },
+        "superspace": data.superspace_metadata,
         "child_basic_structure": data.child_basic_structure,
         "artifacts": associated_links,
         "verification": verification,
@@ -401,6 +404,105 @@ def render_channel_table(channels: list[dict[str, object]]) -> str:
         )
     return render_table(
         ["Channel", "Total modes", "Active coefficients", "RSS coefficient", "Max |coef|", "Length checks"],
+        rows,
+    )
+
+
+def render_superspace_metadata(superspace: dict[str, object]) -> str:
+    incomm_irreps = superspace.get("incommensurate_irreps", [])
+    if not superspace.get("setting") and not incomm_irreps:
+        return "<p class=\"muted\">No superspace-specific metadata was embedded in this export.</p>"
+    blocks = [f"<p><strong>Superspace setting:</strong> <span class=\"formula\">{html_escape(superspace.get('setting') or 'not embedded')}</span></p>"]
+    if incomm_irreps:
+        rows = []
+        for item in incomm_irreps:
+            basis_origin = item.get("basis_origin") or {}
+            rows.append(
+                [
+                    str(item.get("irrep_index", "")),
+                    str(item.get("modulation_count", "")),
+                    str(item.get("independent_modulation_count", "")),
+                    html_escape(item.get("superspace_group_number", "") or ""),
+                    html_escape(item.get("superspace_group_label", "") or ""),
+                    html_escape(", ".join(str(value) for value in item.get("kvec_param_irrat", [])) or ""),
+                    html_escape((basis_origin.get("raw_basis", "") + " | " + basis_origin.get("raw_origin", "")).strip(" |")),
+                ]
+            )
+        blocks.append(
+            render_table(
+                ["IR", "Modulations", "Independent", "SSG number", "SSG label", "Irrational q params", "Basis/origin"],
+                rows,
+            )
+        )
+    return "".join(blocks)
+
+
+def render_magnetic_modes(metadata: dict[str, object]) -> str:
+    modes = metadata.get("modes", [])
+    if not modes:
+        return "<p class=\"muted\">No magnetic mode table is stored in this distortion file.</p>"
+    rows = []
+    for item in modes:
+        rows.append(
+            [
+                html_escape(item.get("label", "")),
+                str(item.get("irrep_index", "")),
+                html_escape(item.get("irrep_label", "") or ""),
+                html_escape(item.get("k_vector", "") or ""),
+                html_escape(item.get("irrep_number", "") or ""),
+                html_escape(item.get("point_group_irrep", "") or ""),
+                f"{item['coefficient']:.4f}" if item.get("coefficient") is not None else "",
+                f"{item['norm']:.4f}" if item.get("norm") is not None else "",
+                f"{item['scale']:.4f}" if item.get("scale") is not None else "",
+                "yes" if item.get("nonzero") else "no",
+            ]
+        )
+    return render_table(
+        ["Mode", "IR index", "Irrep", "k vector", "IR number", "PG irrep", "Coefficient", "Norm", "Scale", "Nonzero"],
+        rows,
+    )
+
+
+def render_magnetic_amp_phase(metadata: dict[str, object]) -> str:
+    if not metadata.get("has_amp_phase_table"):
+        return "<p class=\"muted\">No incommensurate magnetic amplitude/phase table was exported.</p>"
+    sections = []
+    for item in metadata.get("modes", []):
+        amp_phase_rows = item.get("amp_phase_rows", [])
+        if not amp_phase_rows:
+            continue
+        rows = [
+            [str(row["atom_index"])] + [f"{value:.6f}" for value in row["components"]]
+            for row in amp_phase_rows
+        ]
+        sections.append(f"<h4>{html_escape(item.get('label', 'mode'))} — {html_escape(item.get('irrep_label') or 'unlabeled irrep')}</h4>")
+        sections.append(render_table(["Atom", "Component 1", "Component 2", "Component 3"], rows))
+    return "".join(sections) or "<p class=\"muted\">Amplitude/phase rows were present but could not be grouped by atom.</p>"
+
+
+def render_magnetic_secondary_linkages(linkages: list[dict[str, object]]) -> str:
+    if not linkages:
+        return "<p class=\"muted\">No magnetic-primary linkage summary could be inferred from the stored irrep assignments.</p>"
+    rows = []
+    for item in linkages:
+        secondary = ", ".join(
+            f"{channel['family']} [{channel.get('linkage_scope', 'linked')}] ({channel['nonzero_count']}/{channel['count']} nonzero, rss={channel['rss']:.3f})"
+            for channel in item.get("secondary_channels", [])
+        )
+        magnetic = item.get("magnetic_summary", {})
+        rows.append(
+            [
+                str(item.get("irrep_index", "")),
+                html_escape(item.get("irrep", "") or ""),
+                html_escape(item.get("k_vector", "") or ""),
+                html_escape(item.get("irrep_number", "") or ""),
+                f"{magnetic.get('nonzero_count', 0)}/{magnetic.get('count', 0)}",
+                f"{magnetic.get('rss', 0.0):.4f}",
+                html_escape(secondary or "no nonmagnetic channels assigned to the same stored irrep index"),
+            ]
+        )
+    return render_table(
+        ["Magnetic IR", "Irrep", "k vector", "IR number", "Active magnetic modes", "Magnetic RSS", "Linked nonmagnetic channels"],
         rows,
     )
 
@@ -628,6 +730,28 @@ def render_example_html(record: dict[str, object], output_path: Path) -> str:
 
     <section class="grid two">
       <div class="panel">
+        <h2>Magnetic Mode Metadata</h2>
+        <p class="section-note">Magnetic examples now expose the export-local magnetic mode list directly: per-mode labels, irrep assignments, stored coefficients, and normalization/scale data from the ISODISTORT file.</p>
+        {render_magnetic_modes(record["mode_overview"]["magnetic_modes"])}
+        <h3>Magnetic → Secondary-Channel Linkage</h3>
+        {render_magnetic_secondary_linkages(record["mode_overview"]["magnetic_secondary_linkages"])}
+      </div>
+
+      <div class="panel">
+        <h2>Superspace Metadata</h2>
+        <p class="section-note">For incommensurate cases, ordinary 3D space-group verification is incomplete. The superspace-group metadata below is taken directly from the exported modes section.</p>
+        {render_superspace_metadata(record["superspace"])}
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Incommensurate Magnetic Amplitude/Phase Tables</h2>
+      <p class="lead">When ISODISTORT exports per-atom incommensurate magnetic amplitude/phase values, they are grouped below mode-by-mode using the stored atom count from the applet section.</p>
+      {render_magnetic_amp_phase(record["mode_overview"]["magnetic_modes"])}
+    </section>
+
+    <section class="grid two">
+      <div class="panel">
         <h2>Verification Scope</h2>
         <p class="section-note">These checks are intentionally conservative. They verify internal consistency of the exported distortion file and test whether companion CIF artifacts are parseable as average crystal structures. They do not replace magnetic or superspace symmetry validation in FINDSSG, ISOCIF, or JANA-style tools.</p>
         {render_table(["Check", "Result"], check_rows)}
@@ -751,6 +875,11 @@ def render_example_markdown(record: dict[str, object]) -> str:
             "",
             "## Interpretation",
             record["interpretation"],
+            "",
+            "## Magnetic Mode Metadata",
+            f"- Magnetic mode count: `{record['mode_overview']['magnetic_modes']['mode_count']}`",
+            f"- Magnetic linkage groups: `{len(record['mode_overview']['magnetic_secondary_linkages'])}`",
+            f"- Superspace metadata entries: `{len(record['superspace']['incommensurate_irreps'])}`",
             "",
             "## Verification",
             f"- Associated files present: `{record['verification']['internal_checks']['associated_files_all_present']}`",
