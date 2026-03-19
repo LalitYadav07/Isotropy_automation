@@ -8,6 +8,7 @@ from pymatgen.io.cif import CifParser
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 
 from _isotropy_paths import configure_environment, resolve_input_path
+from isodistort_distortion_parser import parse_distortion_file
 
 
 configure_environment()
@@ -46,13 +47,22 @@ def classify_transition(
     distortion_path = resolve_input_path(distortion_file) if distortion_file else None
 
     if distortion_path is not None:
+        distortion_data = parse_distortion_file(distortion_path)
         rationale = [
             "An ISODISTORT distortion file was supplied, so the most direct workflow is explanation/decomposition rather than blind parent-side discovery."
         ]
+        workflow = "generate_tutorial_reports_or_distortion_explainer"
+        family = "decomposition_from_distortion_file"
         if parent_path is not None:
             rationale.append("A parent CIF is also available, so the explanation can anchor the distortion in the parent symmetry setting.")
+        if child_path is not None:
+            rationale.append("A child CIF is also available, so the workflow can check whether parent and known child settings align with the saved decomposition.")
+        if child_path is not None and "magnetic" in distortion_data.classification:
+            rationale.append("The distortion file carries magnetic modes and a known child structure was supplied, so the dedicated magnetic parent/child workflow is the best fit.")
+            workflow = "analyze_magnetic_child_structure"
+            family = "known_magnetic_parent_child_decomposition"
         return TransitionClassification(
-            family="decomposition_from_distortion_file",
+            family=family,
             confidence="high",
             rationale=rationale,
             parent_path=str(parent_path) if parent_path else None,
@@ -60,7 +70,7 @@ def classify_transition(
             distortion_path=str(distortion_path),
             parent_space_group=None,
             child_space_group=None,
-            recommended_workflow="generate_tutorial_reports_or_distortion_explainer",
+            recommended_workflow=workflow,
         )
 
     if parent_path is not None and child_path is None:
