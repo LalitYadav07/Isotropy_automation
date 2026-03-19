@@ -27,6 +27,9 @@ class DistortionReportData:
     coefficient_summaries: dict[str, dict[str, float]]
     mode_summaries: dict[str, dict[str, object]]
     primary_irreps: list[dict[str, object]]
+    magnetic_mode_metadata: dict[str, object]
+    superspace_metadata: dict[str, object]
+    magnetic_secondary_linkages: list[dict[str, object]]
     modes_irrep_numbers: list[int]
     irrep_count: int
     modulation_count: int
@@ -342,6 +345,207 @@ def _primary_irrep_summaries(
     return results, alignment_ok
 
 
+def _bool_list(value: str | None) -> list[bool]:
+    return [token == "T" for token in _bool_tokens(value)]
+
+
+def _chunked_rows(values: list[float], width: int) -> list[list[float]]:
+    if width <= 0:
+        return []
+    return [values[index : index + width] for index in range(0, len(values), width) if len(values[index : index + width]) == width]
+
+
+def _basis_origin_blocks(value: str | None) -> list[dict[str, object]]:
+    lines = _lines(value)
+    blocks: list[dict[str, object]] = []
+    index = 0
+    while index + 1 < len(lines):
+        basis_values = _ints(lines[index])
+        origin_values = _ints(lines[index + 1])
+        blocks.append(
+            {
+                "basis_values": basis_values[:16],
+                "origin_values": origin_values,
+                "raw_basis": lines[index],
+                "raw_origin": lines[index + 1],
+            }
+        )
+        index += 2
+    return blocks
+
+
+def _magnetic_mode_metadata(
+    distortion: dict[str, str],
+    modes: dict[str, str],
+    irreps: list[str],
+    k_vectors: list[str],
+    atom_count: int,
+    distortion_irrep_numbers: list[int],
+    modes_irrep_numbers: list[int],
+) -> dict[str, object]:
+    mode_irrep_indices = _ints(modes.get("magneticModeIrrep"))
+    point_group_irreps = _ints(modes.get("magneticModePGIrrep"))
+    scales = _numbers(modes.get("magneticModeScale"))
+    norms = _numbers(modes.get("magneticModeNorm"))
+    coefficients = _numbers(distortion.get("magneticModesCoef"))
+    amp_phase_rows = _chunked_rows(_numbers(modes.get("magneticModeAmpPhase")), 3)
+
+    irrep_label_by_index = {index: label for index, label in enumerate(irreps, start=1)}
+    k_vector_by_index = {index: label for index, label in enumerate(k_vectors, start=1)}
+    irrep_number_by_index = {index: number for index, number in enumerate(distortion_irrep_numbers or modes_irrep_numbers, start=1)}
+
+    modes_list: list[dict[str, object]] = []
+    for index, irrep_index in enumerate(mode_irrep_indices, start=1):
+        coefficient = coefficients[index - 1] if index - 1 < len(coefficients) else 0.0
+        entry = {
+            "index": index,
+            "label": f"m{index}",
+            "irrep_index": irrep_index,
+            "irrep_number": irrep_number_by_index.get(irrep_index),
+            "irrep_label": irrep_label_by_index.get(irrep_index),
+            "k_vector": k_vector_by_index.get(irrep_index),
+            "point_group_irrep": point_group_irreps[index - 1] if index - 1 < len(point_group_irreps) else None,
+            "scale": scales[index - 1] if index - 1 < len(scales) else None,
+            "norm": norms[index - 1] if index - 1 < len(norms) else None,
+            "coefficient": coefficient,
+            "nonzero": abs(coefficient) > 1e-9,
+        }
+        if atom_count > 0 and amp_phase_rows:
+            start = (index - 1) * atom_count
+            mode_rows = amp_phase_rows[start : start + atom_count]
+            if mode_rows:
+                entry["amp_phase_rows"] = [
+                    {
+                        "atom_index": atom_index,
+                        "components": row,
+                    }
+                    for atom_index, row in enumerate(mode_rows, start=1)
+                ]
+        modes_list.append(entry)
+
+    return {
+        "mode_count": len(modes_list),
+        "modes": modes_list,
+        "has_amp_phase_table": bool(amp_phase_rows),
+        "amp_phase_row_count": len(amp_phase_rows),
+    }
+
+
+def _superspace_metadata(distortion: dict[str, str], modes: dict[str, str]) -> dict[str, object]:
+    irrep_mod_counts = _ints(modes.get("irrepModCount"))
+    irrep_indep_mod_counts = _ints(modes.get("irrepIndepModCount"))
+    irrep_mod_flags = _bool_list(modes.get("irrepMod"))
+    irrep_ssg_nums = _lines(modes.get("irrepSSGNum"))
+    irrep_ssg_labels = _lines(modes.get("irrepSSGLabel"))
+    basis_origin_blocks = _basis_origin_blocks(modes.get("isoSSGBasisOrigin"))
+    kvec_param_irrat = _chunked_rows(_numbers(modes.get("kvecParamIrrat")), 3)
+
+    incommensurate_irreps: list[dict[str, object]] = []
+    ssg_index = 0
+    for index, mod_count in enumerate(irrep_mod_counts, start=1):
+        if mod_count <= 0:
+            continue
+        entry = {
+            "irrep_index": index,
+            "modulation_count": mod_count,
+            "independent_modulation_count": irrep_indep_mod_counts[index - 1] if index - 1 < len(irrep_indep_mod_counts) else None,
+            "modulation_involved": irrep_mod_flags[index - 1] if index - 1 < len(irrep_mod_flags) else None,
+            "kvec_param_irrat": kvec_param_irrat[index - 1] if index - 1 < len(kvec_param_irrat) else [],
+            "superspace_group_number": irrep_ssg_nums[ssg_index] if ssg_index < len(irrep_ssg_nums) else None,
+            "superspace_group_label": irrep_ssg_labels[ssg_index] if ssg_index < len(irrep_ssg_labels) else None,
+            "basis_origin": basis_origin_blocks[ssg_index] if ssg_index < len(basis_origin_blocks) else None,
+        }
+        incommensurate_irreps.append(entry)
+        ssg_index += 1
+
+    return {
+        "setting": (distortion.get("settingSSG") or "").strip() or None,
+        "incommensurate_irreps": incommensurate_irreps,
+    }
+
+
+def _magnetic_secondary_linkages(
+    primary_irreps: list[dict[str, object]],
+    mode_summaries: dict[str, dict[str, object]],
+    distortion_irrep_numbers: list[int],
+    irreps: list[str],
+    k_vectors: list[str],
+) -> list[dict[str, object]]:
+    linkages: list[dict[str, object]] = []
+    global_secondary_channels = []
+    for family in ("displacive", "ordering", "rotational", "ellipsoidal", "strain"):
+        summary = mode_summaries[family]
+        if summary["nonzero_mode_count"] <= 0:
+            continue
+        global_secondary_channels.append(
+            {
+                "family": family,
+                "count": int(summary["coefficient_count"]),
+                "nonzero_count": int(summary["nonzero_mode_count"]),
+                "rss": summary["rss"],
+                "max_abs": summary["max_abs"],
+                "linkage_scope": "global distortion export",
+            }
+        )
+    if primary_irreps:
+        candidates = primary_irreps
+    else:
+        candidates = [
+            {
+                "index": index,
+                "irrep": irreps[index - 1] if index - 1 < len(irreps) else None,
+                "k_vector": k_vectors[index - 1] if index - 1 < len(k_vectors) else None,
+                "irrep_number": distortion_irrep_numbers[index - 1] if index - 1 < len(distortion_irrep_numbers) else None,
+                "category_summaries": {},
+            }
+            for index in sorted({int(key) for key, value in mode_summaries["magnetic"]["per_irrep"].items() if value["count"] > 0})
+        ]
+
+    for candidate in candidates:
+        magnetic_summary = mode_summaries["magnetic"]["per_irrep"].get(
+            str(candidate["index"]),
+            {"count": 0.0, "nonzero_count": 0.0, "rss": 0.0, "max_abs": 0.0},
+        )
+        if magnetic_summary["count"] <= 0:
+            continue
+        secondary_channels = []
+        for family in ("displacive", "ordering", "rotational", "ellipsoidal", "strain"):
+            summary = mode_summaries[family]["per_irrep"].get(
+                str(candidate["index"]),
+                {"count": 0.0, "nonzero_count": 0.0, "rss": 0.0, "max_abs": 0.0},
+            )
+            if summary["count"] <= 0 and summary["nonzero_count"] <= 0:
+                continue
+            secondary_channels.append(
+                {
+                    "family": family,
+                    "count": int(summary["count"]),
+                    "nonzero_count": int(summary["nonzero_count"]),
+                    "rss": summary["rss"],
+                    "max_abs": summary["max_abs"],
+                    "linkage_scope": "same irrep index",
+                }
+            )
+        if not secondary_channels:
+            secondary_channels = global_secondary_channels
+        linkages.append(
+            {
+                "irrep_index": candidate["index"],
+                "irrep": candidate.get("irrep"),
+                "k_vector": candidate.get("k_vector"),
+                "irrep_number": candidate.get("irrep_number"),
+                "magnetic_summary": {
+                    "count": int(magnetic_summary["count"]),
+                    "nonzero_count": int(magnetic_summary["nonzero_count"]),
+                    "rss": magnetic_summary["rss"],
+                    "max_abs": magnetic_summary["max_abs"],
+                },
+                "secondary_channels": secondary_channels,
+            }
+        )
+    return linkages
+
+
 def parse_distortion_file(path: Path) -> DistortionReportData:
     text = path.read_text(encoding="utf-8")
     sections = _parse_sections(text)
@@ -393,6 +597,24 @@ def parse_distortion_file(path: Path) -> DistortionReportData:
     slug = path.stem[:-11] if path.stem.endswith("-distortion") else path.stem
     title = slug.replace("-", " ")
     child_basic_structure = _parse_atoms_body(atoms.get("__body__"))
+    atom_count = int(sum(_numbers(modes.get("atomCount")) or [0]))
+    magnetic_mode_metadata = _magnetic_mode_metadata(
+        distortion,
+        modes,
+        irreps,
+        k_vectors,
+        atom_count,
+        distortion_irrep_numbers,
+        modes_irrep_numbers,
+    )
+    superspace_metadata = _superspace_metadata(distortion, modes)
+    magnetic_secondary_linkages = _magnetic_secondary_linkages(
+        primary_irreps,
+        mode_summaries,
+        distortion_irrep_numbers,
+        irreps,
+        k_vectors,
+    )
     associated_files = _associated_files(path)
     missing_associated_files = [
         filename for filename in associated_files if not (path.parent / filename).exists()
@@ -418,6 +640,9 @@ def parse_distortion_file(path: Path) -> DistortionReportData:
         coefficient_summaries=coefficient_summaries,
         mode_summaries=mode_summaries,
         primary_irreps=primary_irreps,
+        magnetic_mode_metadata=magnetic_mode_metadata,
+        superspace_metadata=superspace_metadata,
+        magnetic_secondary_linkages=magnetic_secondary_linkages,
         modes_irrep_numbers=modes_irrep_numbers,
         irrep_count=int(sum(_numbers(modes.get("irrepCount")) or _numbers(distortion.get("irrepCount")) or [0])),
         modulation_count=modulation_count,
