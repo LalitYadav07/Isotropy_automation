@@ -40,6 +40,8 @@ The generated tutorial reports are designed to:
 - distinguish between tutorial intent, exported facts, and conservative automated verification
 - keep magnetic and incommensurate examples honest by not overstating what a conventional CIF parser can verify
 
+Magnetic and superspace tutorial examples now also have a dedicated regression-fixture set in `fixtures/magnetic_tutorial_regression.json`, documented in `docs/magnetic_validation.md` and enforced by `python -m unittest tests.test_magnetic_tutorial_regression`.
+
 The older `simulate_diffraction.py` workflow remains an exploratory script for local modeling. The new tutorial reports are the better starting point for understanding the ISODISTORT examples themselves.
 
 ## Discovery workflow

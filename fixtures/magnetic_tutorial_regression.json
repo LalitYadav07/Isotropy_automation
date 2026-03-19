@@ -1,0 +1,301 @@
+[
+  {
+    "id": "lamno3_magchild",
+    "distortion_file": "isotutorials/exercises-completed/lamno3-magchild-distortion.txt",
+    "parent_structure": "isotutorials/exercises-completed/lamno3-cubic.cif",
+    "tutorial_active_magnetic_irreps": [
+      "mX5+"
+    ],
+    "expected_opd": "Subgroup: 62.448 Pn'ma', basis={(1,0,-1),(0,2,0),(1,0,1)}, origin=(1/2,0,1/2), s=4, i=48",
+    "expected_subgroup": "62.448 Pn'ma'",
+    "expected_primary_channels": [
+      "magnetic mX5+ antiferromagnetic order"
+    ],
+    "expected_secondary_channels": [
+      "displacive octahedral rotations and Jahn-Teller distortions",
+      "symmetry-allowed strain"
+    ],
+    "expected_local_behavior": [
+      "Recover the magnetic Pn'ma' subgroup selection from the stored decomposition.",
+      "Verify that magnetic, displacive, and strain families are all present.",
+      "Verify that one magnetic mode is populated while seven displacive and three strain modes are nonzero.",
+      "Treat this example as a decomposition fixture: the exported file need not list primary irreps explicitly."
+    ],
+    "parser_expectations": {
+      "classification_includes": [
+        "magnetic",
+        "displacive",
+        "strain",
+        "commensurate",
+        "mode decomposition"
+      ],
+      "order_parameter_equals": "Subgroup: 62.448 Pn'ma', basis={(1,0,-1),(0,2,0),(1,0,1)}, origin=(1/2,0,1/2), s=4, i=48",
+      "associated_files_include": [
+        "lamno3-magchild.cif",
+        "lamno3-magchild-P1.cif"
+      ],
+      "primary_irreps": [],
+      "mode_nonzero_counts": {
+        "magnetic": 1,
+        "displacive": 7,
+        "strain": 3
+      },
+      "child_basic_structure_atom_count": 4,
+      "internal_checks_true": [
+        "associated_files_all_present",
+        "coefficient_lengths_consistent",
+        "atoms_section_present"
+      ],
+      "internal_checks_false": []
+    }
+  },
+  {
+    "id": "dymn6ge6",
+    "distortion_file": "isotutorials/exercises-completed/dymn6ge6-distortion.txt",
+    "parent_structure": "isotutorials/exercises-completed/dymn6ge6-parent.cif",
+    "tutorial_active_magnetic_irreps": [
+      "mGM2+",
+      "mDT6"
+    ],
+    "expected_opd": "P1-P (a|b,0,0,0) 177.1.24.2.m153.1 P62'2'(0,0,g)h00",
+    "expected_subgroup": "177.1.24.2.m153.1 P62'2'(0,0,g)h00",
+    "expected_primary_channels": [
+      "commensurate ferromagnetic mGM2+ component",
+      "incommensurate magnetic mDT6 cone modulation"
+    ],
+    "expected_secondary_channels": [
+      "strain allowed but numerically zero in the stored fixture"
+    ],
+    "expected_local_behavior": [
+      "Extract both magnetic irreps and their k vectors from the distortion file.",
+      "Verify that all seven magnetic coefficients are nonzero and split across the two irreps.",
+      "Verify that the stored subgroup is superspace, not an ordinary 3D magnetic space group string."
+    ],
+    "parser_expectations": {
+      "classification_includes": [
+        "magnetic",
+        "incommensurate/modulated",
+        "generated distortion"
+      ],
+      "order_parameter_contains": [
+        "P62'2'(0,0,g)h00",
+        "k-active= (0,0,0);(0,0,0.16500)"
+      ],
+      "primary_irreps": [
+        {
+          "irrep": "mGM2+, mk16t3",
+          "k_vector": "GM, k16 (0,0,0)",
+          "magnetic_nonzero": 2
+        },
+        {
+          "irrep": "mDT6, mk11t5",
+          "k_vector": "DT, k11 (0,0,g), g=0.16500 (1 incommensurate modulation/1 arm)",
+          "magnetic_nonzero": 5
+        }
+      ],
+      "mode_nonzero_counts": {
+        "magnetic": 7,
+        "displacive": 0,
+        "ordering": 0,
+        "strain": 0
+      },
+      "child_basic_structure_atom_count": null,
+      "internal_checks_true": [
+        "associated_files_all_present",
+        "coefficient_lengths_consistent",
+        "primary_irrep_alignment"
+      ],
+      "internal_checks_false": [
+        "atoms_section_present"
+      ]
+    }
+  },
+  {
+    "id": "tbmno3_primary_only",
+    "distortion_file": "isotutorials/exercises-completed/tbmno3-distortion.txt",
+    "parent_structure": "isotutorials/exercises-completed/tbmno3-pbnm.cif",
+    "tutorial_active_magnetic_irreps": [
+      "mSM3",
+      "mSM2"
+    ],
+    "expected_opd": "P-P (a,0|b,0) 33.1.9.5.m145.2 Pbn2_1.1'(0,a,0)000s",
+    "expected_subgroup": "33.1.9.5.m145.2 Pbn2_1.1'(0,a,0)000s",
+    "expected_primary_channels": [
+      "incommensurate cycloidal magnetic mSM3 + mSM2 order"
+    ],
+    "expected_secondary_channels": [
+      "polar displacive response symmetry-allowed but numerically zero in this file"
+    ],
+    "expected_local_behavior": [
+      "Extract both magnetic irreps with the same incommensurate k vector.",
+      "Verify that only the magnetic family carries nonzero amplitudes.",
+      "Verify that displacive and strain channels exist in the scaffold but remain zero."
+    ],
+    "parser_expectations": {
+      "classification_includes": [
+        "magnetic",
+        "displacive",
+        "strain",
+        "incommensurate/modulated",
+        "generated distortion"
+      ],
+      "order_parameter_contains": [
+        "Pbn2_1.1'(0,a,0)000s",
+        "k-active= (0,0.27000,0)"
+      ],
+      "primary_irreps": [
+        {
+          "irrep": "mSM3, mk8t1",
+          "k_vector": "SM, k8 (0,a,0), a=0.27000 (1 incommensurate modulation/1 arm)",
+          "magnetic_nonzero": 1
+        },
+        {
+          "irrep": "mSM2, mk8t4",
+          "k_vector": "SM, k8 (0,a,0), a=0.27000 (1 incommensurate modulation/1 arm)",
+          "magnetic_nonzero": 1
+        }
+      ],
+      "mode_nonzero_counts": {
+        "magnetic": 2,
+        "displacive": 0,
+        "ordering": 0,
+        "strain": 0
+      },
+      "child_basic_structure_atom_count": null,
+      "internal_checks_true": [
+        "associated_files_all_present",
+        "coefficient_lengths_consistent",
+        "primary_irrep_alignment"
+      ],
+      "internal_checks_false": [
+        "atoms_section_present"
+      ]
+    }
+  },
+  {
+    "id": "tbmno3_with_polar_response",
+    "distortion_file": "isotutorials/exercises-completed/tbmno3-distortion2.txt",
+    "parent_structure": "isotutorials/exercises-completed/tbmno3-pbnm.cif",
+    "tutorial_active_magnetic_irreps": [
+      "mSM3",
+      "mSM2"
+    ],
+    "expected_opd": "P-P (a,0|b,0) 33.1.9.5.m145.2 Pbn2_1.1'(0,a,0)000s",
+    "expected_subgroup": "33.1.9.5.m145.2 Pbn2_1.1'(0,a,0)000s",
+    "expected_primary_channels": [
+      "incommensurate cycloidal magnetic mSM3 + mSM2 order"
+    ],
+    "expected_secondary_channels": [
+      "explicit polar displacive response populated in the exported coefficients"
+    ],
+    "expected_local_behavior": [
+      "Extract the same two magnetic irreps and subgroup as the primary-only TbMnO3 fixture.",
+      "Verify that magnetic amplitudes remain nonzero and that two displacive coefficients become nonzero.",
+      "Use the contrast with tbmno3-distortion.txt as a regression guard for secondary-channel extraction."
+    ],
+    "parser_expectations": {
+      "classification_includes": [
+        "magnetic",
+        "displacive",
+        "strain",
+        "incommensurate/modulated",
+        "generated distortion"
+      ],
+      "order_parameter_contains": [
+        "Pbn2_1.1'(0,a,0)000s",
+        "k-active= (0,0.27000,0)"
+      ],
+      "primary_irreps": [
+        {
+          "irrep": "mSM3, mk8t1",
+          "k_vector": "SM, k8 (0,a,0), a=0.27000 (1 incommensurate modulation/1 arm)",
+          "magnetic_nonzero": 1
+        },
+        {
+          "irrep": "mSM2, mk8t4",
+          "k_vector": "SM, k8 (0,a,0), a=0.27000 (1 incommensurate modulation/1 arm)",
+          "magnetic_nonzero": 1
+        }
+      ],
+      "mode_nonzero_counts": {
+        "magnetic": 2,
+        "displacive": 2,
+        "ordering": 0,
+        "strain": 0
+      },
+      "child_basic_structure_atom_count": null,
+      "internal_checks_true": [
+        "associated_files_all_present",
+        "coefficient_lengths_consistent",
+        "primary_irrep_alignment"
+      ],
+      "internal_checks_false": [
+        "atoms_section_present"
+      ]
+    }
+  },
+  {
+    "id": "skyrmion_scaffold",
+    "distortion_file": "isotutorials/exercises-completed/skyrmion-distortion.txt",
+    "parent_structure": "isotutorials/exercises-completed/skyrmion-parent.cif",
+    "tutorial_active_magnetic_irreps": [
+      "mLD3",
+      "mLD4"
+    ],
+    "expected_opd": "P-P (a,0;a,0;a,0|b,0;b,0;b,0) 177.2.83.6.m153.1 P62'2'(a,a,0)000(-2a,a,0)000",
+    "expected_subgroup": "177.2.83.6.m153.1 P62'2'(a,a,0)000(-2a,a,0)000",
+    "expected_primary_channels": [
+      "multi-k magnetic mLD3 / mLD4 skyrmion or vortex scaffold"
+    ],
+    "expected_secondary_channels": [
+      "occupational order allowed in the scaffold",
+      "displacive and strain channels allowed but zero in this stored file"
+    ],
+    "expected_local_behavior": [
+      "Extract the two named magnetic irreps and the three-arm k-active list from the superspace OPD.",
+      "Verify that all coefficient families are present but numerically zero, preserving the scaffold.",
+      "Guard against regressions that would drop occupational or superspace metadata when amplitudes are zero."
+    ],
+    "parser_expectations": {
+      "classification_includes": [
+        "magnetic",
+        "displacive",
+        "occupational",
+        "strain",
+        "incommensurate/modulated",
+        "generated distortion"
+      ],
+      "order_parameter_contains": [
+        "P62'2'(a,a,0)000(-2a,a,0)000",
+        "k-active= (0.10000,0.10000,0),(-0.10000,0.20000,0),(-0.20000,0.10000,0)"
+      ],
+      "primary_irreps": [
+        {
+          "irrep": "mLD3, mk6t4",
+          "k_vector": "LD, k6 (a,a,0), a=0.10000 (2 incommensurate modulations/3 arms)",
+          "magnetic_nonzero": 0
+        },
+        {
+          "irrep": "mLD4, mk6t3",
+          "k_vector": "LD, k6 (a,a,0), a=0.10000 (2 incommensurate modulations/3 arms)",
+          "magnetic_nonzero": 0
+        }
+      ],
+      "mode_nonzero_counts": {
+        "magnetic": 0,
+        "displacive": 0,
+        "ordering": 0,
+        "strain": 0
+      },
+      "child_basic_structure_atom_count": null,
+      "internal_checks_true": [
+        "associated_files_all_present",
+        "coefficient_lengths_consistent",
+        "primary_irrep_alignment"
+      ],
+      "internal_checks_false": [
+        "atoms_section_present"
+      ]
+    }
+  }
+]
