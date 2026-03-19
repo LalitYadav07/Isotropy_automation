@@ -73,3 +73,8 @@ Here "vector-active" means only that symmetry allows a microscopic displacement 
 `DISPLAY DISTORTION` does not necessarily mean one row equals one distinct atom. Depending on the case, rows can represent projected-vector contributions in the chosen display cell. Those contributions must be interpreted in the correct basis and combined on the same child-cell site before using them to build a trial structure.
 
 That point is essential. If it is mishandled, the workflow can appear to "verify" or "reject" subgroups for purely geometric reasons that have nothing to do with the underlying symmetry physics.
+
+
+## Known magnetic child structures
+
+When both a parent CIF and a known magnetic child CIF are available, the safest automated path is now a decomposition-centered workflow rather than parent-only discovery. In practice that means: standardize both settings, keep the saved ISODISTORT basis/origin/OPD metadata explicit, treat the dominant magnetic mode family as the primary order-parameter candidate, and report non-magnetic amplitudes as secondary displacive / ordering / rotational / strain responses within the same subgroup scaffold.

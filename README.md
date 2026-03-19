@@ -28,6 +28,7 @@ Important entry points:
 - `scripts/generate_tutorial_reports.py`: distortion-file explanation/report generation
 - `scripts/explain_phase_transition.py`: transition-family classifier and workflow router
 - `scripts/reconstructive_transition_search.py`: parent+child reconstructive/common-subgroup search with `comsubs`
+- `scripts/analyze_magnetic_child_structure.py`: parent+known-magnetic-child decomposition report from a saved ISODISTORT export
 
 ## Tutorial reports
 
@@ -64,6 +65,19 @@ The discovery script now treats the local `iso` output in a way that matches the
 Each run writes HTML/JSON/Markdown summaries plus candidate CIFs and diffraction plots under `outputs/discovery_runs/<run_name>/`.
 
 The generated reports now include a transition-class coverage table so the workflow states explicitly which cases are implemented, which are only cataloged, and which still require other tools or a different script.
+
+## Known magnetic child workflow
+
+Use `./.venv/bin/python scripts/analyze_magnetic_child_structure.py <parent.cif> <magnetic_child.cif> <distortion.txt> --label <run_name>` when you already know the magnetic child structure and have saved an ISODISTORT Method-4-style distortion export.
+
+This workflow is designed to:
+
+- standardize and compare the supplied parent and magnetic child CIF settings
+- recover the stored subgroup basis/origin and OPD metadata from the distortion export
+- identify the dominant magnetic irrep contribution and separate it from secondary displacive, ordering, rotational, ellipsoidal, and strain responses
+- write JSON and Markdown reports under `outputs/magnetic_child_runs/<run_name>/` with amplitude summaries that are easier to interpret physically
+
+Because local automation still does not drive the full ISODISTORT GUI decomposition itself, this workflow starts from a saved distortion file rather than recreating the decomposition from scratch.
 
 See `docs/isotropy_transition_model.md` for the current conceptual model behind the automation.
 

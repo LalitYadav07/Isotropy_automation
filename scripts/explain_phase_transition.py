@@ -77,6 +77,18 @@ def main() -> None:
                 label,
             ]
         )
+    elif classification.recommended_workflow == "analyze_magnetic_child_structure" and args.parent_cif and args.child_cif and args.distortion_file:
+        execution = run_command(
+            [
+                "python3",
+                "scripts/analyze_magnetic_child_structure.py",
+                args.parent_cif,
+                args.child_cif,
+                args.distortion_file,
+                "--label",
+                label,
+            ]
+        )
     elif classification.recommended_workflow == "generate_tutorial_reports_or_distortion_explainer" and args.distortion_file:
         execution = run_command(
             [
