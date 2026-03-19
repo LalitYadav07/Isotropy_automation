@@ -8,6 +8,7 @@ from pymatgen.io.cif import CifParser
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 
 from _isotropy_paths import configure_environment, resolve_input_path
+from transition_metadata import inspect_cif_metadata, inspect_distortion_metadata
 
 
 configure_environment()
@@ -24,6 +25,7 @@ class TransitionClassification:
     parent_space_group: str | None
     child_space_group: str | None
     recommended_workflow: str
+    detected_metadata: dict[str, dict[str, object]]
 
     def as_dict(self) -> dict[str, object]:
         return asdict(self)
@@ -45,14 +47,43 @@ def classify_transition(
     child_path = resolve_input_path(child_cif) if child_cif else None
     distortion_path = resolve_input_path(distortion_file) if distortion_file else None
 
+    detected_metadata: dict[str, dict[str, object]] = {}
+    if parent_path is not None:
+        detected_metadata["parent"] = inspect_cif_metadata(parent_path).as_dict()
+    if child_path is not None:
+        detected_metadata["child"] = inspect_cif_metadata(child_path).as_dict()
+    if distortion_path is not None:
+        detected_metadata["distortion"] = inspect_distortion_metadata(distortion_path).as_dict()
+
+    magnetic_present = any(item.get("has_magnetic_metadata") for item in detected_metadata.values())
+    superspace_present = any(item.get("has_superspace_metadata") for item in detected_metadata.values())
+    coupled_structural_present = any(
+        item.get("kind") == "distortion" and item.get("has_structural_distortion_metadata") for item in detected_metadata.values()
+    )
+
     if distortion_path is not None:
         rationale = [
-            "An ISODISTORT distortion file was supplied, so the most direct workflow is explanation/decomposition rather than blind parent-side discovery."
+            "An ISODISTORT distortion file was supplied, so routing should respect the distortion metadata rather than defaulting to generic structural reporting."
         ]
-        if parent_path is not None:
-            rationale.append("A parent CIF is also available, so the explanation can anchor the distortion in the parent symmetry setting.")
+        if superspace_present and magnetic_present:
+            rationale.append("The supplied distortion metadata indicate an incommensurate magnetic superspace case.")
+            family = "incommensurate_magnetic_superspace_analysis"
+            workflow = "incommensurate_magnetic_superspace_analysis"
+        elif magnetic_present and coupled_structural_present:
+            rationale.append("The supplied distortion metadata include both magnetic and structural channels, so coupled analysis is the right family.")
+            family = "mixed_magnetic_structural_coupled_analysis"
+            workflow = "mixed_magnetic_structural_coupled_analysis"
+        elif magnetic_present:
+            rationale.append("The supplied distortion metadata indicate a magnetic decomposition problem.")
+            family = "magnetic_parent_child_decomposition"
+            workflow = "magnetic_parent_child_decomposition"
+        else:
+            if parent_path is not None:
+                rationale.append("A parent CIF is also available, so the explanation can anchor the distortion in the parent symmetry setting.")
+            family = "decomposition_from_distortion_file"
+            workflow = "generate_tutorial_reports_or_distortion_explainer"
         return TransitionClassification(
-            family="decomposition_from_distortion_file",
+            family=family,
             confidence="high",
             rationale=rationale,
             parent_path=str(parent_path) if parent_path else None,
@@ -60,20 +91,35 @@ def classify_transition(
             distortion_path=str(distortion_path),
             parent_space_group=None,
             child_space_group=None,
-            recommended_workflow="generate_tutorial_reports_or_distortion_explainer",
+            recommended_workflow=workflow,
+            detected_metadata=detected_metadata,
         )
 
     if parent_path is not None and child_path is None:
+        rationale = ["Only a parent structure was supplied, so the router should start from parent-side discovery metadata."]
+        if superspace_present and magnetic_present:
+            rationale.append("The supplied parent CIF already carries magnetic superspace tags, so it belongs to a dedicated superspace workflow.")
+            family = "incommensurate_magnetic_superspace_analysis"
+            workflow = "incommensurate_magnetic_superspace_analysis"
+        elif magnetic_present:
+            rationale.append("The supplied parent CIF contains magnetic metadata, so it should route to commensurate magnetic parent-only discovery instead of structural discovery.")
+            family = "commensurate_magnetic_parent_only_discovery"
+            workflow = "commensurate_magnetic_parent_only_discovery"
+        else:
+            rationale.append("No magnetic or superspace metadata were detected, so structural parent-side discovery remains the default.")
+            family = "symmetry_connected_parent_only"
+            workflow = "discover_distortion_signatures"
         return TransitionClassification(
-            family="symmetry_connected_parent_only",
+            family=family,
             confidence="high",
-            rationale=["Only a parent structure was supplied, so the correct starting point is parent-side discovery over irreps and isotropy subgroups."],
+            rationale=rationale,
             parent_path=str(parent_path),
             child_path=None,
             distortion_path=None,
             parent_space_group=None,
             child_space_group=None,
-            recommended_workflow="discover_distortion_signatures",
+            recommended_workflow=workflow,
+            detected_metadata=detected_metadata,
         )
 
     if parent_path is None and child_path is not None:
@@ -87,6 +133,7 @@ def classify_transition(
             parent_space_group=None,
             child_space_group=None,
             recommended_workflow="supply_parent_structure",
+            detected_metadata=detected_metadata,
         )
 
     if parent_path is None and child_path is None:
@@ -100,6 +147,7 @@ def classify_transition(
             parent_space_group=None,
             child_space_group=None,
             recommended_workflow="supply_parent_structure_or_distortion_file",
+            detected_metadata=detected_metadata,
         )
 
     parent_structure, parent_sg = _structure_and_sg(parent_path)
@@ -112,7 +160,22 @@ def classify_transition(
         f"Child structure analyzed as {child_sg}.",
     ]
 
-    if same_framework:
+    if superspace_present and magnetic_present:
+        rationale.append("Magnetic superspace metadata were detected in the supplied CIF inputs, so the dedicated superspace workflow takes precedence over structural matching.")
+        family = "incommensurate_magnetic_superspace_analysis"
+        confidence = "high"
+        workflow = "incommensurate_magnetic_superspace_analysis"
+    elif magnetic_present and coupled_structural_present:
+        rationale.append("Both magnetic and structural metadata were detected across the supplied inputs, so a mixed coupled-analysis workflow is preferred.")
+        family = "mixed_magnetic_structural_coupled_analysis"
+        confidence = "high"
+        workflow = "mixed_magnetic_structural_coupled_analysis"
+    elif magnetic_present:
+        rationale.append("Magnetic metadata were detected across the supplied inputs, so a dedicated magnetic parent+child decomposition workflow is preferred.")
+        family = "magnetic_parent_child_decomposition"
+        confidence = "high"
+        workflow = "magnetic_parent_child_decomposition"
+    elif same_framework:
         rationale.append("The parent and child are structurally matchable under a tolerant structure matcher, suggesting a symmetry-connected workflow is plausible.")
         family = "symmetry_connected_parent_child"
         confidence = "medium"
@@ -133,4 +196,5 @@ def classify_transition(
         parent_space_group=parent_sg,
         child_space_group=child_sg,
         recommended_workflow=workflow,
+        detected_metadata=detected_metadata,
     )

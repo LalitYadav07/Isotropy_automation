@@ -23,11 +23,15 @@ The new helper `scripts/findsym_tools.py` attempts standardization through the v
 
 ### 3. Transition-family classification
 
-The new module `scripts/phase_transition_classifier.py` classifies the problem before choosing a workflow. The current families are:
+The new module `scripts/phase_transition_classifier.py` classifies the problem before choosing a workflow. It now also inspects CIF magnetic tags, moment loops, superspace tags, and distortion-file mode metadata. The current families are:
 
 - `symmetry_connected_parent_only`
 - `symmetry_connected_parent_child`
 - `reconstructive_parent_child`
+- `commensurate_magnetic_parent_only_discovery`
+- `magnetic_parent_child_decomposition`
+- `incommensurate_magnetic_superspace_analysis`
+- `mixed_magnetic_structural_coupled_analysis`
 - `decomposition_from_distortion_file`
 - `child_only_unsupported`
 - `insufficient_input`
@@ -38,9 +42,13 @@ The classification is intentionally conservative and reports rationale plus a re
 
 The new script `scripts/explain_phase_transition.py` acts as a front-end dispatcher:
 
-- parent only -> discovery workflow
+- structural parent only -> discovery workflow
+- magnetic parent only -> dedicated commensurate magnetic discovery workflow scaffold
+- magnetic parent + child -> dedicated magnetic decomposition workflow scaffold
+- magnetic superspace distortion / CIF metadata -> dedicated superspace workflow scaffold
+- mixed magnetic + structural distortion metadata -> dedicated coupled-analysis workflow scaffold
 - parent + child reconstructive candidate -> `comsubs` wrapper
-- distortion file -> tutorial/decomposition report workflow
+- purely structural distortion file -> tutorial/decomposition report workflow
 
 A `--dry-run` option is included so classification can be validated without launching an expensive downstream search.
 

@@ -77,6 +77,27 @@ def main() -> None:
                 label,
             ]
         )
+    elif classification.recommended_workflow in {
+        "commensurate_magnetic_parent_only_discovery",
+        "magnetic_parent_child_decomposition",
+        "incommensurate_magnetic_superspace_analysis",
+        "mixed_magnetic_structural_coupled_analysis",
+    }:
+        command = [
+            "python3",
+            "scripts/magnetic_workflows.py",
+            "--workflow",
+            classification.recommended_workflow,
+            "--label",
+            label,
+        ]
+        if args.parent_cif:
+            command.extend(["--parent-cif", args.parent_cif])
+        if args.child_cif:
+            command.extend(["--child-cif", args.child_cif])
+        if args.distortion_file:
+            command.extend(["--distortion-file", args.distortion_file])
+        execution = run_command(command)
     elif classification.recommended_workflow == "generate_tutorial_reports_or_distortion_explainer" and args.distortion_file:
         execution = run_command(
             [

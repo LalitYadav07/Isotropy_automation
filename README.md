@@ -28,6 +28,7 @@ Important entry points:
 - `scripts/generate_tutorial_reports.py`: distortion-file explanation/report generation
 - `scripts/explain_phase_transition.py`: transition-family classifier and workflow router
 - `scripts/reconstructive_transition_search.py`: parent+child reconstructive/common-subgroup search with `comsubs`
+- `scripts/magnetic_workflows.py`: dedicated magnetic and superspace workflow family entry points
 
 ## Tutorial reports
 
@@ -68,5 +69,7 @@ The generated reports now include a transition-class coverage table so the workf
 See `docs/isotropy_transition_model.md` for the current conceptual model behind the automation.
 
 For a broader reverse-research summary, environment status, and a proposed roadmap toward a systematic phase-transition explainer, see `docs/systematic_phase_transition_research.md`.
+
+The transition router now also inspects CIF and distortion metadata for magnetic-space-group tags, moment loops, and superspace markers so magnetic and incommensurate cases are dispatched to dedicated workflow families instead of the structural discovery or generic tutorial-report routes.
 
 For the concrete implementation upgrades added after that research pass, see `docs/phase_search_upgrade_notes.md`.
